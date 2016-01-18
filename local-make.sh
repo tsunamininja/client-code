@@ -1,7 +1,8 @@
 #!/bin/bash
 
-BUFFER_HELPER_LOCATION=/home/joe/workbench/dns-client/bufferHelper.c
+CCFLAGS="-std=c99 -D_POSIX_C_SOURCE=2 -mpreferred-stack-boundary=2"
+SOURCE="main.c dns-protocol.c bufferHelper.c"
+EXE=myprog
 
-gcc -ggdb -mpreferred-stack-boundary=2 -o main \
-main.c dns-protocol.c $BUFFER_HELPER_LOCATION \
--std=c99 -D_POSIX_C_SOURCE=2
+# compile and link
+gcc $CCFLAGS -o $EXE $SOURCE

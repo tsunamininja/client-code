@@ -10,6 +10,30 @@
 
 // define the DNS packet structure
 
+// define default values for DNS header fields
+
+// set by client and copied in response from server
+
+/* DNS HEADER FIELD & VALUES */
+#define TRANSAC_ID		0xaabb  // should be randomized
+#define QR_QUERY		0 		// message is query
+#define OPCODE			0 		// standard query
+#define AA_NULL		    0       // *set by server
+#define TC_NULL	        0		// *set by server
+#define RD_TRUE			1		// recursion is desired
+#define RA_NULL			0       // *set by server
+#define Z				0		// reserved 3 bits for something
+#define RCODE_NULL		0		// *set by server
+#define QDCOUNT			1		// we have 1 question
+#define ANCOUNT_NULL	0		// *set by server
+#define NSCOUNT_NULL	0		// *set by server
+#define ARCOUNT_NULL	0		// *set by server
+
+/* DNS QUESTION FIELD & VALUES */
+#define QTYPE_A			1		// this is a query type for A records
+#define QCLASS_IN		1		// this is a query of type Internet Class
+
+
 /*
  * structure name - DNS_HEADER
  *
