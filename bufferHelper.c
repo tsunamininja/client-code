@@ -115,9 +115,8 @@ unsigned int copyString(unsigned char *destBuff,
 
 	// get return value
 	if (dummyPtr == NULL)
-	{
 		ret = 0;
-	}
+
 	else // success
 		ret = 1;
 
@@ -138,11 +137,32 @@ unsigned int seekToChar(unsigned char *qNameArg,
 	unsigned int seekBytes = 0;
 	unsigned int c;
 
-	while(qNameArg[seekBytes] != seekValueArg)
-	{
-		printf("qNameArg[%u] char-> %c \n", seekBytes, qNameArg[seekBytes]);
-		seekBytes++;
-	}
-
 	return seekBytes;
+}
+
+/*
+ * function name - stringPrinter
+ *
+ * function purpose - print out the hex and ascii representation of each byte
+ * in a string
+ *
+ * arg1 - pointer to string
+ * arg2 - length of string
+ *
+ * return value - void
+ *
+ * comments - tbd
+ *
+ * enhancements - tbd
+ */
+void stringPrinter(unsigned char *buff, unsigned int len)
+{
+	//printf("[-] Buff Printer \n");
+	//printf("size of char array: %d bytes \n\n", sizeof(in_string));
+
+	for (int i=0; i<len; i++) // actually prints length
+	{
+	    //printf("index> %u char> %c  hex> %x \n", i, buff[i], buff[i]);
+		printf("%x_", buff[i]);
+	}
 }

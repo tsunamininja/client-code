@@ -35,7 +35,7 @@ unsigned int copyString(unsigned char *destBuff,
 unsigned int seekToChar(unsigned char *qNameArg,
 								unsigned char seekValue);
 
-
+void stringPrinter(unsigned char *buff, unsigned int len);
 
 
 

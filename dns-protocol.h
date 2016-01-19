@@ -31,14 +31,15 @@ struct DNS_HEADER *createDnsHeader(
 						);
 
 struct DNS_QUESTION *createDnsQuestion(unsigned char *qname,
-									   	   unsigned short qtype,
-										   	   unsigned short qclass);
+											unsigned int *qNameLengthArg,
+												unsigned short qtype,
+													unsigned short qclass);
 
 unsigned int createDnsQueryPacket(unsigned char *qNameStringArg,
 										unsigned char *dnsQueryBuffer,
 											unsigned int *dnsQueryBuffLen);
 
-unsigned int createDnsRfcQueryString(unsigned char *qnameArg,
-										unsigned int *qNameLength);
+unsigned char *createDnsRfcQueryString(unsigned char *qnameArg,
+											unsigned int *rfcQNameLength);
 
 #endif /* DNS_PROTOCOL_H_ */
