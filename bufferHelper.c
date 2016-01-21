@@ -4,6 +4,7 @@
 // called in this file
 
 #include <stdio.h>			// printf
+#include <stdlib.h>			// exit
 #include "bufferHelper.h"
 
 /*
@@ -13,16 +14,17 @@
 // pretty much same as memcpy but also is aware of current position of buff
 unsigned int putChar(unsigned char *buff,
 						unsigned char *val,
-							unsigned int *pos)
+							unsigned int *curPos)
 {
 	// store the value specified by val into the buffer
 	// specified by buff starting at the position
 	// specified by pos
 	unsigned int ret = 0;
-	unsigned int position = *pos;
 	unsigned int length = sizeof(unsigned char);
 
-	unsigned char *blah = memcpy(&buff[position], val, length);
+	printf("@[putChar] -- about to store char: %c \n", *val);
+
+	unsigned char *blah = memcpy(&buff[*curPos], val, length);
 
 	// get return value
 	if (blah == NULL)
@@ -32,11 +34,7 @@ unsigned int putChar(unsigned char *buff,
 		ret = 1;
 
 	// increment position index counter
-	position += length;
-
-	// assign the current value of position to the contents
-	// pointed to by pos
-	*pos = position;
+	*curPos += length;
 
 	return ret;
 }
@@ -44,17 +42,17 @@ unsigned int putChar(unsigned char *buff,
 
 // pretty much same as memcpy but also is aware of current position of buff
 unsigned int putShort(unsigned char *buff,
-						unsigned short *val,
-							unsigned int *pos)
+							unsigned short *val,
+								unsigned int *curPos)
 {
 	// store the value specified by val into the buffer
 	// specified by buff starting at the position
 	// specified by pos
 	unsigned int ret = 0;
-	unsigned int position = *pos;
 	unsigned int length = sizeof(unsigned short);
+	unsigned int position = 0;
 
-	unsigned char *blah = memcpy(&buff[position], val, length);
+	unsigned char *blah = memcpy(&buff[*curPos], val, length);
 
 	// get return value
 	if (blah == NULL)
@@ -64,12 +62,7 @@ unsigned int putShort(unsigned char *buff,
 		ret = 1;
 
 	// increment position index counter
-	position += length;
-
-
-	// assign the current value of position to the contents
-	// pointed to by pos
-	*pos = position;
+	*curPos += length;
 
 	return ret;
 }
@@ -77,15 +70,21 @@ unsigned int putShort(unsigned char *buff,
 
 // pretty much same as memcpy but also is aware of current position of buff
 unsigned int putString(unsigned char *destBuff,
-							unsigned char *srcBuff,
-								unsigned int count,
-										unsigned int *pos)
+							unsigned int destBuffSize,
+								unsigned char *srcBuff,
+									unsigned int count,
+										unsigned int *curPos)
 {
 	// store the source string specified by srcBuff into the destination buffer
 	// specified by destBuff starting at the position specified by pos
-	unsigned int position = *pos;
-	unsigned char *dummyPtr = memcpy(&destBuff[position], srcBuff, count);
+	unsigned char *dummyPtr = memcpy(&destBuff[*curPos], srcBuff, count);
 	unsigned int ret = 0;
+
+	if(count > destBuffSize)
+	{
+		printf("[ERROR] count > destBuffSize \n");
+		exit(1);
+	}
 
 	// get return value
 	if (dummyPtr == NULL)
@@ -95,23 +94,27 @@ unsigned int putString(unsigned char *destBuff,
 		ret = 1;
 
 	// increment position index counter by how many bytes we "appended"
-	position += count;
-
-	// assign the current value of position to the contents
-	// pointed to by pos
-	*pos = position;
+	*curPos += count;
 
 	return ret;
 }
 
 unsigned int copyString(unsigned char *destBuff,
-							unsigned char *srcBuff,
-								unsigned int count)
+							unsigned int destBuffSize,
+								unsigned char *srcBuff,
+									unsigned int count)
 {
 	// store the source string specified by srcBuff into the destination buffer
 	// specified by destBuff starting at the position specified by pos
+	// **BUG ** if count > deskBuff.capacity
 	unsigned char *dummyPtr = memcpy(destBuff, srcBuff, count);
 	unsigned int ret = 0;
+
+	if(count > destBuffSize)
+	{
+		printf("[ERROR] count > destBuffSize \n");
+		exit(1);
+	}
 
 	// get return value
 	if (dummyPtr == NULL)
@@ -162,7 +165,7 @@ void stringPrinter(unsigned char *buff, unsigned int len)
 
 	for (int i=0; i<len; i++) // actually prints length
 	{
-	    //printf("index> %u char> %c  hex> %x \n", i, buff[i], buff[i]);
-		printf("%x_", buff[i]);
+	    printf("index> %u char> %c  hex> %x \n", i, buff[i], buff[i]);
+		//printf("%x_", buff[i]);
 	}
 }

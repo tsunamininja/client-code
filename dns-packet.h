@@ -16,18 +16,21 @@
 
 /* DNS HEADER FIELD & VALUES */
 #define TRANSAC_ID		0xaabb  // should be randomized
-#define QR_QUERY		0 		// message is query
+#define QR_QUERY		0 		// message is query			// start flags
 #define OPCODE			0 		// standard query
 #define AA_NULL		    0       // *set by server
 #define TC_NULL	        0		// *set by server
 #define RD_TRUE			1		// recursion is desired
 #define RA_NULL			0       // *set by server
 #define Z				0		// reserved 3 bits for something
-#define RCODE_NULL		0		// *set by server
+#define RCODE_NULL		0		// *set by server			// end flags
 #define QDCOUNT			1		// we have 1 question
 #define ANCOUNT_NULL	0		// *set by server
 #define NSCOUNT_NULL	0		// *set by server
 #define ARCOUNT_NULL	0		// *set by server
+
+// shortcut flags
+#define QUERYFLAGS      0x0100 // standard query
 
 /* DNS QUESTION FIELD & VALUES */
 #define QTYPE_A			1		// this is a query type for A records
@@ -98,22 +101,14 @@
  * arcount		This number specifies the number of resource records in the
  * 				additional records section.
  */
-// total size = 96 bits / 32 bits = 3 words "ints" = 3*(4 bytes) = 12
 struct DNS_HEADER
 {
-	unsigned short	id;
-	unsigned short	qr:1;
-	unsigned short	opcode:4;
-	unsigned short	aa:1;
-	unsigned short	tc:1;
-	unsigned short	rd:1;
-	unsigned short	ra:1;
-	unsigned short	z:3;
-	unsigned short	rcode:4;
-	unsigned short	qdcode;
-	unsigned short  ancount;
-	unsigned short	nscount;
-	unsigned short	arcount;
+	unsigned short		id;
+	unsigned short	 	flags;
+	unsigned short		qdcode;
+	unsigned short 	 	ancount;
+	unsigned short		nscount;
+	unsigned short		arcount;
 };
 
 

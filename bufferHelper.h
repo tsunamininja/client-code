@@ -17,25 +17,38 @@
 // function definitions
 unsigned int putChar(unsigned char* buff,
 						unsigned char *val,
-							unsigned int *pos);
+							unsigned int *curPos);
+
 
 unsigned int putShort(unsigned char* buff,
 						unsigned short *val,
-							unsigned int *pos);
+							unsigned int *curPos);
+
 
 unsigned int putString(unsigned char *destBuff,
-							unsigned char *srcBuff,
-								unsigned int count,
-									unsigned int *pos);
+							unsigned int destBuffSize,
+								unsigned char *srcBuff,
+									unsigned int count,
+										unsigned int *curPos);
+
 
 unsigned int copyString(unsigned char *destBuff,
-							unsigned char *srcBuff,
-								unsigned int count);
+							unsigned int destBuffSize,
+								unsigned char *srcBuff,
+									unsigned int count);
+
 
 unsigned int seekToChar(unsigned char *qNameArg,
 								unsigned char seekValue);
 
+
 void stringPrinter(unsigned char *buff, unsigned int len);
+
+/* byte buffer related operations */
+
+unsigned int getPosition();
+
+void resetPosition();
 
 
 

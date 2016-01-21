@@ -11,6 +11,7 @@
 #include <stddef.h>	      // NULL = 0
 #include <stdio.h>		  // printf
 #include <stdlib.h>		  // exit, malloc
+#include <arpa/inet.h>	  // htons
 #include "dns-protocol.h" // for calling self createDnsRfcQueryString()
 #include "dns-packet.h"   // structure definitions and size calculations
 #include "bufferHelper.h" // for copyString
@@ -51,41 +52,14 @@ unsigned int debug = 1;
  *
  *
  */
-struct DNS_HEADER *createDnsHeader(
-						unsigned short id,
-						unsigned short qr,
-						unsigned short opcode,
-						unsigned short aa,
-						unsigned short tc,
-						unsigned short rd,
-						unsigned short ra,
-						unsigned short z,
-						unsigned short rcode,
-						unsigned short qdcode,
-						unsigned short ancount,
-						unsigned short nscount,
-						unsigned short arcount
-						)
+struct DNS_HEADER *createDnsHeader()
 {
+
 	if(debug)
 	{
 		printf("===== createDnsHeader() ===== \n");
-		printf("id -> %u 		\n", id);
-		printf("qr -> %u 		\n", qr);
-		printf("opcode -> %u	\n", opcode);
-		printf("aa-> %u 		\n", aa);
-		printf("tc -> %u		\n", tc);
-		printf("rd -> %u		\n", rd);
-		printf("ra -> %u 		\n", ra);
-		printf("z -> %u 		\n", z);
-		printf("rcode -> %u		\n", rcode);
-		printf("qdcode -> %u    \n", qdcode);
-		printf("ancount -> %u   \n", ancount);
-		printf("nscount -> %u   \n", nscount);
-		printf("arcount -> %u   \n", arcount);
 		printf("---------------------------------- \n");
 	}
-
 
 	// allocate memory for the DNS_HEADER structure, this should only be done
 	// once for the life cycle of the program
@@ -102,19 +76,12 @@ struct DNS_HEADER *createDnsHeader(
 	}
 
 	// fill the fields of the DNS HEADER structure
-	ptrStructDnsH->id	 	= id;
-	ptrStructDnsH->qr 		= qr;
-	ptrStructDnsH->opcode 	= opcode;
-	ptrStructDnsH->aa 		= aa;
-	ptrStructDnsH->tc 		= tc;
-	ptrStructDnsH->rd 		= rd;
-	ptrStructDnsH->ra 		= ra;
-	ptrStructDnsH->z 		= z;
-	ptrStructDnsH->rcode 	= rcode;
-	ptrStructDnsH->qdcode 	= qdcode;
-	ptrStructDnsH->ancount 	= ancount;
-	ptrStructDnsH->nscount	= nscount;
-	ptrStructDnsH->arcount	= arcount;
+	ptrStructDnsH->id	 	= htons(0x1234); 		 // 2 bytes
+	ptrStructDnsH->flags	= htons(QUERYFLAGS);	 // 2 bytes
+	ptrStructDnsH->qdcode 	= htons(QDCOUNT);   	 // 1 bit
+	ptrStructDnsH->ancount 	= ANCOUNT_NULL;  // 1 bit
+	ptrStructDnsH->nscount	= NSCOUNT_NULL;  // 1 bit
+	ptrStructDnsH->arcount	= ARCOUNT_NULL;  // 1 bit
 
 	if(debug)
 		printf("===== /end createDnsHeader() ===== \n");
@@ -141,17 +108,13 @@ struct DNS_HEADER *createDnsHeader(
  * be passed to the appropriate routine.
  */
 struct DNS_QUESTION *createDnsQuestion(unsigned char *qNameArg,
-											unsigned int *qNameLengthArg,
-												unsigned short qtypeArg,
-													unsigned short qclassArg)
+											unsigned int *qNameLengthArg)
 {
 	if(debug)
 	{
 		printf("===== createDnsQuestion() ===== \n");
 		printf("qNameArg -> %s 			\n", qNameArg);
 		printf("qNameLengthArg -> %u 	\n", *qNameLengthArg);
-		printf("qtype -> %u 			\n", qtypeArg);
-		printf("qclass -> %u			\n", qclassArg);
 		printf("----------------------------------\n");
 	}
 
@@ -173,8 +136,6 @@ struct DNS_QUESTION *createDnsQuestion(unsigned char *qNameArg,
 
 	// create a compliant DNS query name that returns the string and length
 	rfcQName = createDnsRfcQueryString(qNameArg, &rfcQNameLength);
-	//printf("[-] just built the rfc string \n");
-	//stringPrinter(rfcQName, rfcQNameLength); printf("\n");
 
 	if(rfcQName == NULL)
 	{
@@ -187,10 +148,14 @@ struct DNS_QUESTION *createDnsQuestion(unsigned char *qNameArg,
 
 	// alloc memory to hold the qname string.. the passed in qname will be
 	// copied to the memory location pointed to by ptrStructDnsQ->qname
-    ptrStructDnsQ->qname = malloc(sizeof(unsigned char)*rfcQNameLength);
+	unsigned int sizeMalloc_dnsQname = sizeof(unsigned char)*rfcQNameLength;
+    ptrStructDnsQ->qname = malloc(sizeMalloc_dnsQname);
 
 	// copy qname string argument to the qname member of DNS QUESTION struct
-	if (copyString(ptrStructDnsQ->qname, rfcQName, rfcQNameLength) == 0)
+	if (copyString(ptrStructDnsQ->qname,
+						sizeMalloc_dnsQname,
+							rfcQName,
+								rfcQNameLength) == 0)
 	{
 		printf(">>> "
 			"copyString(ptrStructDnsQ->qname, qnameArg, qnameLengthArg)"
@@ -200,8 +165,8 @@ struct DNS_QUESTION *createDnsQuestion(unsigned char *qNameArg,
 	}
 
 	// assigned remaining struct field members
-	ptrStructDnsQ->qtype  = qtypeArg;
-	ptrStructDnsQ->qclass = qclassArg;
+	ptrStructDnsQ->qtype  = htons(QTYPE_A);
+	ptrStructDnsQ->qclass = htons(QCLASS_IN);
 
 	// return rfcQNameLength to caller
 	*qNameLengthArg = rfcQNameLength;
@@ -223,82 +188,63 @@ struct DNS_QUESTION *createDnsQuestion(unsigned char *qNameArg,
  * comments - dnsQueryBuffer is the buffer returned that represents a complete
  * dns query buffer, "udp payload", which is passed to a socket.
  */
-unsigned int createDnsQueryPacket(unsigned char *qNameStringArg,
-										unsigned char *dnsQueryBuffer,
-												unsigned int *dnsQueryBuffLen)
+unsigned char *createDnsQueryPacket(unsigned char *qNameStringArg,
+											unsigned int *dnsQueryBuffLen)
 {
+	// qNameLength will be added to size calculations for bufer length
 	unsigned int qNameLength = 0;
+	unsigned char *dnsQueryBuffer;
+	unsigned int bbPos = 0;
+	unsigned int sizednsh = sizeof(struct DNS_HEADER);
+	unsigned int sizednsq = sizeof(struct DNS_QUESTION) - 4; // minus char*
+	unsigned int mallocSize_dnsQueryBuffer;
 
 
-	// create DnsHeader structure
-	// is basically the same for every query except the transac id should be
-	// rando
-	struct DNS_HEADER *ptrStructDnsH = createDnsHeader(
-											TRANSAC_ID,
-											QR_QUERY,
-											OPCODE,
-											AA_NULL,
-											TC_NULL,
-											RD_TRUE,
-											RA_NULL,
-											Z,
-											RCODE_NULL,
-											QDCOUNT,
-											ANCOUNT_NULL,
-											NSCOUNT_NULL,
-											ARCOUNT_NULL
-											);
+	// create dns header structure
+	struct DNS_HEADER *ptrStructDnsH = createDnsHeader();
 
-	// create Dns question structure
+	// create dns question structure
 	struct DNS_QUESTION *ptrStructDnsQ = createDnsQuestion(qNameStringArg,
-															  &qNameLength,
-																  QTYPE_A,
-																	 QCLASS_IN);
+																&qNameLength);
 
-	printf("[-] Printing DNS Query Message Packet \n");
-	printf("DNS Header Section \n");
-	printf("id -> %u 		\n", ptrStructDnsH->id);
-	printf("qr -> %u 		\n", ptrStructDnsH->qr);
-	printf("opcode -> %u	\n", ptrStructDnsH->opcode);
-	printf("aa-> %u 		\n", ptrStructDnsH->aa);
-	printf("tc -> %u		\n", ptrStructDnsH->tc);
-	printf("rd -> %u		\n", ptrStructDnsH->rd);
-	printf("ra -> %u 		\n", ptrStructDnsH->ra);
-	printf("z -> %u 		\n", ptrStructDnsH->z);
-	printf("rcode -> %u		\n", ptrStructDnsH->rcode);
-	printf("qdcode -> %u    \n", ptrStructDnsH->qdcode);
-	printf("ancount -> %u   \n", ptrStructDnsH->ancount);
-	printf("nscount -> %u   \n", ptrStructDnsH->nscount);
-	printf("arcount -> %u   \n", ptrStructDnsH->arcount);
-	printf("---------------------------------- \n");
+	// ready to malloc socket buffer with qNameSize now known.
+	//printf("qNameLength: %u \n", qNameLength);
+	mallocSize_dnsQueryBuffer = sizednsh + sizednsq + qNameLength;
+	dnsQueryBuffer = malloc(mallocSize_dnsQueryBuffer);
 
-	printf("DNS Question Section \n");
-	printf("question -> ");
-	stringPrinter(ptrStructDnsQ->qname, qNameLength); printf("\n");
-	printf("type -> %u 		\n", ptrStructDnsQ->qtype);
-	printf("class -> %u		\n", ptrStructDnsQ->qclass);
+	// malloc failing here?
+
+	printf("mallosize dns query buffer: %u \n", mallocSize_dnsQueryBuffer);
+	printf("qNameLength: %u \n", qNameLength);
+
+	// now align struct field packet members to buffer
+	putShort(dnsQueryBuffer, &(ptrStructDnsH->id), 		&bbPos);
+	putShort(dnsQueryBuffer, &(ptrStructDnsH->flags), 	&bbPos);
+	putShort(dnsQueryBuffer, &(ptrStructDnsH->qdcode),  &bbPos);
+	putShort(dnsQueryBuffer, &(ptrStructDnsH->ancount), &bbPos);
+	putShort(dnsQueryBuffer, &(ptrStructDnsH->nscount), &bbPos);
+	putShort(dnsQueryBuffer, &(ptrStructDnsH->arcount), &bbPos);
+
+	// assign the dns question structure fields to dnsQueryBuffer array
+	putString(dnsQueryBuffer,
+				mallocSize_dnsQueryBuffer,
+					ptrStructDnsQ->qname,
+						qNameLength,
+							&bbPos);
+
+	putShort(dnsQueryBuffer, &(ptrStructDnsQ->qtype),  &bbPos);
+	putShort(dnsQueryBuffer, &(ptrStructDnsQ->qclass), &bbPos);
 
 
-	// we now have two structures representing a complete dns query
-	// structure 1 for the dns header and 2 for the dns question
-	// now, we need to create a character buffer representing the values
-	// associated with each structure member, this will be returned to the
-	// caller by mallocing the buffer with the length known
-	// and returning the dns packet string buffer in dnsQueryBuffer and
-	// the length in dnsQueryBufferLength
 
 	// before returning.. function clean up? free malloc'd memory since
 	// buffer stuff had already been returned to caller
 	// free?
-	// memcpy(dnsQueryBuffer, structifiedCharBuffer, dnsQueryBuffLen);
 
-	// may issues returning to caller.. should funct ret buff ptr instead?
+	// we need to return caller dnsQUeryBufferLen.
+	*dnsQueryBuffLen = bbPos;
 
-	// we need to return caller dnsQUeryBufferLen.. udp payload length for sock
-
-	// serialize kinda?
-
-	return 1;
+	return dnsQueryBuffer;
 }
 
 /*
