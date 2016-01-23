@@ -8,19 +8,30 @@
 #ifndef DNS_PROTOCOL_H_
 #define DNS_PROTOCOL_H_
 
-
-
-// global variables
-extern unsigned int debug;
+// globals
+extern unsigned char header[];
+extern unsigned char footer[];
+extern unsigned int chunkSize;
+extern unsigned char testPayload[];
+extern unsigned char queryMessage[];
 
 // function definitions
-struct DNS_HEADER *createDnsHeader();
 
-struct DNS_QUESTION *createDnsQuestion(unsigned char *qname,
-											unsigned int *qNameLengthArg);
+int createDnsQueryPacket(unsigned char **sockBuff, unsigned char *userQName);
 
-unsigned char *createDnsQueryPacket(unsigned char *qNameString,
-										unsigned int *dnsQueryBuffLen);
+struct DNS_HEADER *createDnsHeader (
+						unsigned short id,
+						unsigned short flags,
+						unsigned short qdcode,
+						unsigned short ancount,
+						unsigned short nscount,
+						unsigned short arcount);
+
+struct DNS_QUESTION *createDnsQuestion(unsigned char *qNameArg,
+											unsigned short qtypeArg,
+												unsigned short qclassArg);
+
+
 
 unsigned char *createDnsRfcQueryString(unsigned char *qnameArg,
 											unsigned int *rfcQNameLength);

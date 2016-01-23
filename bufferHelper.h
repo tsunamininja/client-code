@@ -15,31 +15,29 @@
 // global variables
 
 // function definitions
-unsigned int putChar(unsigned char* buff,
-						unsigned char *val,
-							unsigned int *curPos);
+int putChar(unsigned char* buff,
+				unsigned char *val,
+					unsigned int *curPos);
 
 
-unsigned int putShort(unsigned char* buff,
-						unsigned short *val,
-							unsigned int *curPos);
+int putShort(unsigned char* buff,
+				unsigned short *val,
+					unsigned int *curPos);
 
 
-unsigned int putString(unsigned char *destBuff,
-							unsigned int destBuffSize,
-								unsigned char *srcBuff,
-									unsigned int count,
-										unsigned int *curPos);
+int putString(unsigned char *destBuff,
+				unsigned char *srcBuff,
+					unsigned int count,
+						unsigned int *curPos);
 
 
-unsigned int copyString(unsigned char *destBuff,
-							unsigned int destBuffSize,
-								unsigned char *srcBuff,
-									unsigned int count);
+int copyString(unsigned char *destBuff,
+					unsigned char *srcBuff,
+						unsigned int count);
 
 
-unsigned int seekToChar(unsigned char *qNameArg,
-								unsigned char seekValue);
+int seekToChar(unsigned char *qNameArg,
+					unsigned char seekValue);
 
 
 void stringPrinter(unsigned char *buff, unsigned int len);

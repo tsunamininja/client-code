@@ -186,16 +186,4 @@ struct DNS_ANSWER
 	unsigned int   rdata; // assuming a record queries
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
 #endif /* DNS_PACKET_H_ */

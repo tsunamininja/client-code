@@ -12,9 +12,9 @@
  */
 
 // pretty much same as memcpy but also is aware of current position of buff
-unsigned int putChar(unsigned char *buff,
-						unsigned char *val,
-							unsigned int *curPos)
+int putChar(unsigned char *buff,
+				unsigned char *val,
+						unsigned int *curPos)
 {
 	// store the value specified by val into the buffer
 	// specified by buff starting at the position
@@ -41,9 +41,9 @@ unsigned int putChar(unsigned char *buff,
 
 
 // pretty much same as memcpy but also is aware of current position of buff
-unsigned int putShort(unsigned char *buff,
-							unsigned short *val,
-								unsigned int *curPos)
+int putShort(unsigned char *buff,
+					unsigned short *val,
+							unsigned int *curPos)
 {
 	// store the value specified by val into the buffer
 	// specified by buff starting at the position
@@ -69,29 +69,22 @@ unsigned int putShort(unsigned char *buff,
 
 
 // pretty much same as memcpy but also is aware of current position of buff
-unsigned int putString(unsigned char *destBuff,
-							unsigned int destBuffSize,
-								unsigned char *srcBuff,
-									unsigned int count,
-										unsigned int *curPos)
+int putString(unsigned char *destBuff,
+					unsigned char *srcBuff,
+							unsigned int count,
+									unsigned int *curPos)
 {
 	// store the source string specified by srcBuff into the destination buffer
 	// specified by destBuff starting at the position specified by pos
 	unsigned char *dummyPtr = memcpy(&destBuff[*curPos], srcBuff, count);
 	unsigned int ret = 0;
 
-	if(count > destBuffSize)
-	{
-		printf("[ERROR] count > destBuffSize \n");
-		exit(1);
-	}
-
 	// get return value
 	if (dummyPtr == NULL)
-		ret = 0;
+		ret = -1;
 
 	else
-		ret = 1;
+		ret = 0;
 
 	// increment position index counter by how many bytes we "appended"
 	*curPos += count;
@@ -99,10 +92,9 @@ unsigned int putString(unsigned char *destBuff,
 	return ret;
 }
 
-unsigned int copyString(unsigned char *destBuff,
-							unsigned int destBuffSize,
-								unsigned char *srcBuff,
-									unsigned int count)
+int copyString(unsigned char *destBuff,
+					unsigned char *srcBuff,
+						unsigned int count)
 {
 	// store the source string specified by srcBuff into the destination buffer
 	// specified by destBuff starting at the position specified by pos
@@ -110,23 +102,17 @@ unsigned int copyString(unsigned char *destBuff,
 	unsigned char *dummyPtr = memcpy(destBuff, srcBuff, count);
 	unsigned int ret = 0;
 
-	if(count > destBuffSize)
-	{
-		printf("[ERROR] count > destBuffSize \n");
-		exit(1);
-	}
-
 	// get return value
 	if (dummyPtr == NULL)
-		ret = 0;
+		ret = -1;
 
 	else // success
-		ret = 1;
+		ret = 0;
 
 	return ret;
 }
 
-unsigned int seekToChar(unsigned char *qNameArg,
+int seekToChar(unsigned char *qNameArg,
 							unsigned char seekValueArg)
 {
 	printf("==============DEBUG=============== \n");
@@ -160,7 +146,7 @@ unsigned int seekToChar(unsigned char *qNameArg,
  */
 void stringPrinter(unsigned char *buff, unsigned int len)
 {
-	//printf("[-] Buff Printer \n");
+	printf("[@] stringPrinter \n");
 	//printf("size of char array: %d bytes \n\n", sizeof(in_string));
 
 	for (int i=0; i<len; i++) // actually prints length
