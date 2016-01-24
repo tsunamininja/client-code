@@ -17,7 +17,7 @@ extern unsigned char queryMessage[];
 
 // function definitions
 
-int createDnsQueryPacket(unsigned char **sockBuff, unsigned char *userQName);
+unsigned char *createDnsQueryPacket(unsigned char *_fqdn, int *sendLen);
 
 struct DNS_HEADER *createDnsHeader (
 						unsigned short id,
@@ -31,9 +31,15 @@ struct DNS_QUESTION *createDnsQuestion(unsigned char *qNameArg,
 											unsigned short qtypeArg,
 												unsigned short qclassArg);
 
-
-
 unsigned char *createDnsRfcQueryString(unsigned char *qnameArg,
 											unsigned int *rfcQNameLength);
+
+struct FQDN_NODE *buildFqdnList(unsigned char *_stdoutChunk,
+									unsigned char *_domain,
+										int _stdoutSize);
+
+void printList(struct FQDN_NODE *head);
+
+void push(struct FQDN_NODE** ptr_head, unsigned char *_fqdn, int _dataSize);
 
 #endif /* DNS_PROTOCOL_H_ */

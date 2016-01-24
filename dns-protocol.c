@@ -47,21 +47,24 @@ unsigned int debug = 1;
 /*
  * function name - createDnsQueryPacket
  *
- * arguments -
+ * arguments - _fqdn => The fully qual domain name to go inside QNAME field
+ * 						The fqdn typically consists of host.SLD.TLD.
  *
- * return value -
+ * 			 - _sendLen => the size of our udp payload for socket functions
+ *
+ * return value - char pointer to created dns packet
  *
  * comments - dnsQueryBuffer is the buffer returned that represents a complete
  * dns query buffer, "udp payload", which is passed to a socket.
  */
-int createDnsQueryPacket(unsigned char **stdoutBuffArg,
-							unsigned char *qnameArg)
+unsigned char *createDnsQueryPacket(unsigned char *_fqdn, int *_sendLen)
 {
 	//*stdoutBuff = malloc(sizeof(unsigned char) * 5);
 	//memcpy(*stdoutBuff, "hell", 5);
 
 	// to keep track of put()'s
 	int buffIndex = 0;
+	unsigned char *dnsQueryPacket;
 
 	struct DNS_HEADER *ptrStructDnsH;
 	struct DNS_QUESTION *ptrStructDnsQ;
@@ -77,48 +80,64 @@ int createDnsQueryPacket(unsigned char **stdoutBuffArg,
 						);
 
 	/* create and fill in a DNS_QUESTION struct */
-	ptrStructDnsQ = createDnsQuestion(qnameArg, QTYPE_A, QCLASS_IN);
+	ptrStructDnsQ = createDnsQuestion(_fqdn, QTYPE_A, QCLASS_IN);
 
-	printf("[-] Printing DNS Query Message Packet \n");
-	printf("DNS Header Section \n");
-	printf("id -> %u 		\n", ptrStructDnsH->id);
-	printf("flags -> %u 	\n", ptrStructDnsH->flags);
-	printf("qdcode -> %u    \n", ptrStructDnsH->qdcode);
-	printf("ancount -> %u   \n", ptrStructDnsH->ancount);
-	printf("nscount -> %u   \n", ptrStructDnsH->nscount);
-	printf("arcount -> %u   \n", ptrStructDnsH->arcount);
-	printf("---------------------------------- \n");
+	//printf("[-] Printing DNS Query Message Packet \n");
+	//printf("DNS Header Section \n");
+	//printf("id -> %u 		\n", ptrStructDnsH->id);
+	//printf("flags -> %u 	\n", ptrStructDnsH->flags);
+	//printf("qdcode -> %u    \n", ptrStructDnsH->qdcode);
+	//printf("ancount -> %u   \n", ptrStructDnsH->ancount);
+	//printf("nscount -> %u   \n", ptrStructDnsH->nscount);
+	//printf("arcount -> %u   \n", ptrStructDnsH->arcount);
+	//printf("---------------------------------- \n");
 
-	printf("DNS Question Section \n");
-	printf("question -> ");
-	stringPrinter(ptrStructDnsQ->qname, strlen(ptrStructDnsQ->qname)+1);
-	printf("\n");
-	printf("type -> %u 		\n", ptrStructDnsQ->qtype);
-	printf("class -> %u		\n", ptrStructDnsQ->qclass);
+	//printf("DNS Question Section \n");
+	//printf("question -> ");
+	//stringPrinter(ptrStructDnsQ->qname, strlen(ptrStructDnsQ->qname)+1);
+	//printf("\n");
+	//printf("type -> %u 		\n", ptrStructDnsQ->qtype);
+	//printf("class -> %u		\n", ptrStructDnsQ->qclass);
 
 	// somehow return the address of a char buffer to *stdoutBuff..
-	*stdoutBuffArg = malloc(sizeof(struct DNS_HEADER));
+	dnsQueryPacket = malloc(sizeof(struct DNS_HEADER) +
+							(strlen(ptrStructDnsQ->qname)+1) +
+								sizeof(ptrStructDnsQ->qtype) +
+									sizeof(ptrStructDnsQ->qclass));
+
+	if(dnsQueryPacket == NULL)
+		{
+			printf(">>> "
+				"*dnsQueryPacket = malloc(sizeof(struct DNS_HEADER) + "
+				"<<< \n"
+				"malloc returned NULL aka failed... exiting \n");
+			//retFlag = 1;
+			exit(1);
+		}
 
 	// copy each value into *stdoutBuffArg array elements
 
 	/* dns header section field member copy */
-	putShort(*stdoutBuffArg, &(ptrStructDnsH->id), 		&buffIndex);
-	putShort(*stdoutBuffArg, &(ptrStructDnsH->flags),   &buffIndex);
-	putShort(*stdoutBuffArg, &(ptrStructDnsH->qdcode),  &buffIndex);
-	putShort(*stdoutBuffArg, &(ptrStructDnsH->ancount), &buffIndex);
-	putShort(*stdoutBuffArg, &(ptrStructDnsH->nscount), &buffIndex);
-	putShort(*stdoutBuffArg, &(ptrStructDnsH->arcount), &buffIndex);
+	putShort(dnsQueryPacket, &(ptrStructDnsH->id), 		&buffIndex);
+	putShort(dnsQueryPacket, &(ptrStructDnsH->flags),   &buffIndex);
+	putShort(dnsQueryPacket, &(ptrStructDnsH->qdcode),  &buffIndex);
+	putShort(dnsQueryPacket, &(ptrStructDnsH->ancount), &buffIndex);
+	putShort(dnsQueryPacket, &(ptrStructDnsH->nscount), &buffIndex);
+	putShort(dnsQueryPacket, &(ptrStructDnsH->arcount), &buffIndex);
 
 	/* dns question section field member copy */
-	putString(*stdoutBuffArg,
+	putString(dnsQueryPacket,
 					ptrStructDnsQ->qname,
-						strlen(ptrStructDnsQ->qname)+1,
+						strlen(ptrStructDnsQ->qname)+1, // +1 for null root
 							&buffIndex);
 
-	putShort(*stdoutBuffArg, &(ptrStructDnsQ->qtype),  &buffIndex);
-	putShort(*stdoutBuffArg, &(ptrStructDnsQ->qclass), &buffIndex);
+	putShort(dnsQueryPacket, &(ptrStructDnsQ->qtype),  &buffIndex);
+	putShort(dnsQueryPacket, &(ptrStructDnsQ->qclass), &buffIndex);
 
-	return buffIndex ;
+	// buffIndex is the length of our udp datagram aka dns packet
+	*_sendLen = buffIndex;
+
+	return dnsQueryPacket;
 }
 
 /*
@@ -489,4 +508,135 @@ unsigned int getQueryNameLength(unsigned char* qNameArg,
     *qNameLen = queryNameLen;
 
 	return 1;
+}
+
+/*
+ * function name - buildFqdnList
+ *
+ * arguments - stdoutChunk => represents a chunk of a larger stdout buffer
+ *			   domainName  => represents the second and top level domain
+ *
+ * return value - pointer to the head node of this list !
+ *
+ * comments - If no chunking, list should have 1 node excluding head node?
+ *
+ * 			  When to use strlen vs, custom strlen for non-ascii bytes?
+ *
+ * 			  Check return values of malloc.. free when?
+ *
+ * 			  Function is cool because it seperates the functionality of
+ * 			  chunking then sending right away, to chunking and store, then send
+ * 			  when ever you want at what ever pace and order desired !
+ *
+ */
+struct FQDN_NODE *buildFqdnList(unsigned char *_stdoutBuffer,
+									unsigned char *_domainName,
+										int _stdoutSize)
+{
+	if(debug)
+	{
+		printf("===== buildFqdnList() ===== \n");
+		printf("stdoutBuffer> %s \n", _stdoutBuffer);
+		printf("domain-> %s 	 \n", _domainName);
+		printf("----------------------------\n");
+	}
+
+	// each list member structure defined below
+	struct FQDN_NODE *head;
+	//unsigned char *fqdn;
+	int chunkSize = 40;
+	int domainSize = strlen(_domainName); // error handling.. strlen <= 0
+	int mallocAmt = 0;
+
+	printf("chunkSize: %u \n", chunkSize);
+	printf("domainSize: %u \n", domainSize);
+	printf("stdoutSize: %u \n", _stdoutSize);
+
+	/* allocate memory for head node */
+	head = malloc(sizeof(struct FQDN_NODE));
+
+	/* create fqdn from stdoutBuffer chunk and _domain */
+
+	// keep track of index into _stdoutBuffer.. while loop here?
+	int bytesTransmitted = 0;
+	int bytesRemaining = _stdoutSize;
+
+	// while we have not grabbed each byte of stdout
+	while(bytesRemaining > 0)
+	{
+		if(bytesRemaining <= chunkSize)
+		{
+			// push this fqdn chunk to our linked list
+			push(&head, &(_stdoutBuffer[bytesTransmitted]), bytesRemaining);
+		}
+		else // we have at least 1 more than chunkSize bytes left
+		{
+			push(&head, &(_stdoutBuffer[bytesTransmitted]), chunkSize);
+
+			// adjust counters appropriately
+			bytesTransmitted = (bytesTransmitted + chunkSize);
+			bytesRemaining = (_stdoutSize - bytesTransmitted);
+		}
+	}
+
+	if(debug)
+			printf("=====/end buildFqdnList() ===== \n");
+
+	return head;
+}
+
+// this method will be responsible for printing out the
+// data field value associated with each node in the list
+void printList(struct FQDN_NODE *head)
+{
+	// create a local pointer to walk the list
+	struct FQDN_NODE *current = head;
+
+	// now the value of current = = the value of head
+	// they each contain the memory address of the head variable
+
+	// loop through each node in the list and print the value
+	while (current != NULL)
+	{
+		// print out the first data field in the list
+		// %d for signed integer
+		printf("data: %s \n", current->fqdn);
+
+		// at this point, the current pointer still points at head
+		// we need to modify the value of current, by assigning it
+		// the value associated with its 'next' member
+		current = current->next;
+
+		// now the current variable value has been modified and now
+		// contains a new memory address corresponding to the next
+		// node that had been linked in previously
+
+		// if the value of current = NULL, as would be the case
+		// when the end of the list was reached and the next data member
+		// had been changed to NULL, then we are at the end of the list
+		// ie "node1->next = NULL;"
+	}
+}
+
+void push(struct FQDN_NODE** ptr_head, unsigned char *_fqdn, int _dataSize)
+{
+	// 0.) allocate memory for new node
+	struct FQDN_NODE *newNode = malloc(sizeof(struct FQDN_NODE));
+
+	// 1.) alloc memory for fqdn string member
+	newNode->fqdn = malloc(_dataSize);
+
+	// 2.) assign values at member
+	memcpy(newNode->fqdn, _fqdn, _dataSize);
+
+	// 3.) set newNode 'next' value to head.. this head will now
+	// becomes the 2nd node in list
+	newNode->next = *ptr_head;
+
+	// 2.) set head to point to newNode... thus making newNode the first node in list
+	*ptr_head = newNode;
+
+	// 3.) find the last node
+	// ?
+
 }

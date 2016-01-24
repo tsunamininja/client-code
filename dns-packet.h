@@ -186,4 +186,10 @@ struct DNS_ANSWER
 	unsigned int   rdata; // assuming a record queries
 };
 
+struct FQDN_NODE
+{
+	unsigned char *fqdn;
+	struct FQDN_NODE *next;
+};
+
 #endif /* DNS_PACKET_H_ */

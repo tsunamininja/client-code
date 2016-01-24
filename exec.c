@@ -13,12 +13,33 @@
 #include "exec.h"
 #include "bufferHelper.h"
 
-int shellCommand(unsigned char *command, unsigned char **stdoutBuffer)
+int debug1 = 1;
+
+/*
+ * function name - shellCommand
+ *
+ * arguments - _command => pointer to command string to pass to exec
+ * 			   _stdoutBuffer => buffer to stdout for caller return
+ *
+ * return value - stdout buffer size... !, count
+ *
+ * comments - maybe just don't do ** as args unless we need to return int
+ *
+ */
+int shellCommand(unsigned char *_command, unsigned char **_stdoutBuffer)
 {
+	if(debug1)
+	{
+		printf("===== shellCommand() ===== \n");
+		printf("command -> %s 			\n", _command);
+		printf("stdoutBuffer (not printing) \n" );
+		printf("----------------------------------\n");
+	}
+
 	/* pipe -> fork -> exec */
 
 	int flag = 0;
-	*stdoutBuffer = malloc(sizeof(unsigned char) * STDOUT_BUFFER_SIZE);
+	*_stdoutBuffer = malloc(sizeof(unsigned char) * STDOUT_BUFFER_SIZE);
 	unsigned int readCount = STDOUT_BUFFER_SIZE;
 
 	// malloc return value;
@@ -50,14 +71,14 @@ int shellCommand(unsigned char *command, unsigned char **stdoutBuffer)
 
 		// somehow filedes[1] is associated with the write end of the pipe
 		// which stdout will "write to" as opposed to "writing" to the tty
-		execl("/bin/sh", "sh", "-c", "ifconfig", (char*)0);
+		execl("/bin/sh", "sh", "-c", _command, (char*)0);
 		perror("execl");
 		_exit(1);
 	    // child now exits and we return to parent
 	}
 
 	// back in parent.. let's read from the "read end" filedes[0] of the pipe
-	ssize_t count = read(filedes[0], *stdoutBuffer, readCount);
+	ssize_t count = read(filedes[0], *_stdoutBuffer, readCount);
 
 	printf("count -> %u \n", count);
 
@@ -70,13 +91,14 @@ int shellCommand(unsigned char *command, unsigned char **stdoutBuffer)
     {
     	flag = 0;
     }
-	printf("finished executing command.. contents -> ");
-	stringPrinter(*stdoutBuffer, count);
 
 	// done reading from stdin buffer
 	close(filedes[0]);
 	wait(0);
 
+	if(debug1)
+		printf("=====/end shellCommand() ===== \n");
+
 	// now return buffer to caller
-	return flag;
+	return count;
 }
