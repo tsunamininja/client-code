@@ -152,6 +152,6 @@ void stringPrinter(unsigned char *buff, unsigned int len)
 	for (int i=0; i<len; i++) // actually prints length
 	{
 	    printf("index> %u char> %c  hex> %x \n", i, buff[i], buff[i]);
-		//printf("%x_", buff[i]);
+		//printf("%c", buff[i]);
 	}
 }
