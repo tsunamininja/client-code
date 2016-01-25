@@ -68,7 +68,7 @@ unsigned char *createDnsQueryPacket(unsigned char *_fqdn, int *_sendLen)
 	struct DNS_QUESTION *ptrStructDnsQ;
 
 	/* create and fill in a DNS_HEADER struct */
-	ptrStructDnsH = createDnsHeader(
+	ptrStructDnsH = buildDnsHeader(
 						TRANSAC_ID,
 						QUERYFLAGS,
 						QDCOUNT,
@@ -78,7 +78,7 @@ unsigned char *createDnsQueryPacket(unsigned char *_fqdn, int *_sendLen)
 						);
 
 	/* create and fill in a DNS_QUESTION struct */
-	ptrStructDnsQ = createDnsQuestion(_fqdn, QTYPE_A, QCLASS_IN);
+	ptrStructDnsQ = buildDnsQuestion(_fqdn, QTYPE_A, QCLASS_IN);
 
 	//printf("[-] Printing DNS Query Message Packet \n");
 	//printf("DNS Header Section \n");
@@ -247,15 +247,14 @@ unsigned char *createDnsRfcQueryString(unsigned char *qNameArg,
 }
 
 /*
- * function name -
+ * function name - createDnsHeader
  *
- * arguments -
+ * arguments - ?
  *
- * return value -
- *
+ * return value - ?
  *
  */
-struct DNS_HEADER *createDnsHeader (
+struct DNS_HEADER *buildDnsHeader (
 						unsigned short id,
 						unsigned short flags,
 						unsigned short qdcode,
@@ -322,7 +321,7 @@ struct DNS_HEADER *createDnsHeader (
  * on the received qname Arg, ie, "www.hello.com" is not compliant and would
  * be passed to the appropriate routine.
  */
-struct DNS_QUESTION *createDnsQuestion(unsigned char *qNameArg,
+struct DNS_QUESTION *buildDnsQuestion(unsigned char *qNameArg,
 											unsigned short qtypeArg,
 												unsigned short qclassArg)
 {
@@ -394,119 +393,6 @@ struct DNS_QUESTION *createDnsQuestion(unsigned char *qNameArg,
 }
 
 
-/* utility functions below */
-
-/*
- * function name - getQueryNameLength
- *
- * arguments -
- *
- * return value -
- *
- * comments - this function receives a compliant dns query name string, ie,
- * www.hello.com, and returns the length of it.
- *
- * Really only used for parsing incoming DNS responses
- *
- */
-unsigned int getQueryNameLength(unsigned char* qNameArg,
-									unsigned int *qNameLen)
-{
-	if(debug)
-	{
-		printf("==============DEBUG===============  \n");
-		printf("function name - getQueryNameLength  \n");
-		printf("qNameArg-> %s 		\n", qNameArg);
-		printf("qNameLen> %u 		\n", *qNameLen);
-		printf("----------------------------------  \n");
-	}
-
-	unsigned int labelCount   = 0;
-	unsigned int labelLen1 	  = 0;
-	unsigned int labelLen2	  = 0;
-	unsigned int labelLen3 	  = 0;
-	unsigned int labelLen4    = 0;
-	unsigned int queryNameLen = 0;
-
-	/* retrieve the label Len value for current octet */
-	labelLen1 = qNameArg[0];
-	if(labelLen1 > 0)
-	{
-		/* update value of labelCount and queryNameLen */
-		labelCount++;
-		queryNameLen = labelLen1+labelCount;
-	}
-	/* end of query... root TLD . reached.. */
-	else
-	{
-		labelCount++;
-		queryNameLen = labelLen1+labelLen2+labelLen3+labelLen4+labelCount;
-	}
-
-	/* retrieve the next label Len value for next octet */
-	labelLen2 = qNameArg[queryNameLen];
-
-	if(labelLen2 > 0)
-	{
-		/* update value of labelCount and queryNameLen */
-		labelCount++;
-		queryNameLen = labelLen1+labelLen2+labelCount;
-	}
-	/* end of query... root TLD . reached.. */
-	else
-	{
-		labelCount++;
-		queryNameLen = labelLen1+labelLen2+labelLen3+labelLen4+labelCount;
-	}
-
-	/* retrieve the next label Len value for next octet */
-	labelLen3 = qNameArg[queryNameLen];
-
-	if(labelLen3 > 0)
-	{
-		/* update value of labelCount and queryNameLen */
-		labelCount++;
-		queryNameLen = labelLen1+labelLen2+labelLen3+labelCount;
-	}
-	/* end of query... root TLD . reached.. */
-	else
-	{
-		labelCount++;
-		queryNameLen = labelLen1+labelLen2+labelLen3+labelLen4+labelCount;
-	}
-
-	/* retrieve the next label Len value for next octet */
-	labelLen4 = qNameArg[queryNameLen];
-
-	if(labelLen4 > 0)
-	{
-		/* update value of labelCount and queryNameLen */
-		labelCount++;
-		queryNameLen = labelLen1+labelLen2+labelLen3+labelLen4+labelCount;
-	}
-	/* end of query... root TLD . reached.. */
-	else
-	{
-		labelCount++;
-		queryNameLen = labelLen1+labelLen2+labelLen3+labelLen4+labelCount;
-	}
-
-    if (debug)
-    {
-    	printf("[-] Label Count: %u labelLen1>%u labelLen2>%u labelLen2>%u "
-						"Total Len of Query> %u \n\n",
-							labelCount,
-								labelLen1,
-									labelLen2,
-										labelLen3,
-    										queryNameLen);
-    }
-    // copy value into arg 2 for caller
-    *qNameLen = queryNameLen;
-
-	return 1;
-}
-
 /*
  * function name - buildFqdnList
  *
@@ -529,9 +415,9 @@ unsigned int getQueryNameLength(unsigned char* qNameArg,
  * 			  a period to the end of the stdout buff sdfijsdiofjsdf>.<cnn.com
  *
  */
-struct FQDN_NODE *buildFqdnList(unsigned char *_stdoutBuffer,
-									unsigned char *_domainName,
-										int _stdoutSize)
+struct FQDN_NODE *constructFqdnList(unsigned char *_stdoutBuffer,
+										unsigned char *_domainName,
+											int _stdoutSize)
 {
 	if(debug)
 	{
@@ -709,10 +595,6 @@ void push(struct FQDN_NODE *head,
 	} // end if
 	else // else head->next is NULL - there is only 1 node "head"
 	{
-		puts("~~~~~~~~~~~~~ head->next == null (1 node in list) \n");
-
-		printf("assigning fqdn: %s \n", _fqdn);
-
 		// 1.) alloc memory for fqdn string member
 		head->fqdn = malloc(_dataSize);
 
@@ -725,7 +607,94 @@ void push(struct FQDN_NODE *head,
 		head->next = NULL; // if this remains null the if will never enter
 	}
 
-
 	if(debug)
 		printf("=====/end push() ===== \n");
+}
+
+
+/*
+ * function name - parseDnsResponse
+ *
+ * arguments -
+ *
+ * return value - ?
+ *
+ * comments - purpose of function is to prse
+ *
+ */
+struct DNS_RESPONSE_PACKET *parseDnsResponse(unsigned char *_recvBuff,
+												int _recvBuffSize)
+{
+	if(debug)
+	{
+		printf("===== parseDnsResponse() ===== 	\n");
+		printf("_recvBuffer: %s \n", _recvBuff);
+		printf("_recvBuffSize: %u \n", _recvBuffSize);
+		printf("----------------------------	\n");
+	}
+
+	int buffIndex = 0;
+	struct DNS_RESPONSE_PACKET *response;
+	response = malloc(sizeof(struct DNS_RESPONSE_PACKET));
+
+	//printDnsResponse(response);
+
+	/* fetch dns header fields from reply */
+	fetchShort(&(response->dnsHeader.id), 	   _recvBuff, &buffIndex);
+	fetchShort(&(response->dnsHeader.flags),   _recvBuff, &buffIndex);
+	fetchShort(&(response->dnsHeader.qdcode),  _recvBuff, &buffIndex);
+	fetchShort(&(response->dnsHeader.ancount), _recvBuff, &buffIndex);
+	fetchShort(&(response->dnsHeader.nscount), _recvBuff, &buffIndex);
+	fetchShort(&(response->dnsHeader.arcount), _recvBuff, &buffIndex);
+
+	printDnsResponse(response);
+
+	/* fetch dns question section from reply */
+	// allocate memory for qname field
+	//int qNameLen = strlen(&(_recvBuff[buffIndex]) + 1);
+
+	//printf("qnameLen: %u \n", qNameLen);
+
+	//response->dnsQuestion->qname = malloc()
+	//putString()
+
+
+	// end func
+	if(debug)
+		printf("====/end parseDnsResponse() ==== \n");
+
+	return 0;
+}
+
+void printDnsResponse(struct DNS_RESPONSE_PACKET *resp)
+{
+	printf("[+] Printing DNS Server Response \n");
+
+	// printing dns header
+	printf("TRANS ID %hx     \n", htons(resp->dnsHeader.id));
+	printf("FLAGS: %hx       \n", htons(resp->dnsHeader.flags));
+	printf("QUEST COUNT: %hx \n", htons(resp->dnsHeader.qdcode));
+	printf("ANSW RRs: %hx    \n", htons(resp->dnsHeader.ancount));
+	printf("AUTH RRs: %hx    \n", htons(resp->dnsHeader.nscount));
+	printf("ADDIT RRs: %hx   \n", htons(resp->dnsHeader.arcount));
+
+	/*
+
+	// print dns question section
+	printf("QUESTION NAME: ");
+	stringPrinter(resp->dnsQuestion.qname, strlen(resp->dnsQuestion.qname));
+	printf("\n");
+
+	printf("QUESTION TYPE %x  \n",		   htons(resp->dnsQuestion.qtype));
+	printf("QUESTION CLASS %x \n", 		   htons(resp->dnsQuestion.qclass));
+
+	// print answer
+	printf("RESPONSE NAME PTR: %hx    \n", htons(resp->dnsAnswer.name));
+	printf("RESPONSE TYPE: %hx        \n", htons(resp->dnsAnswer.type));
+	printf("RESPONSE QUERY CLASS: %hx \n", htons(resp->dnsAnswer.class));
+	printf("RESPONSE TTL: %u	      \n", htons(resp->dnsAnswer.ttl));
+	printf("RESPONSE DATA LEN>: %hx   \n", htons(resp->dnsAnswer.rdlength));
+	printf("RESPONSE DATA: %x         \n", htons(resp->dnsAnswer.rdata));
+
+	*/
 }

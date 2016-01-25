@@ -9,6 +9,8 @@
 
 /*
  * put<DataType> .. more like append<DataType>
+ *
+ * MAINLY USED TO APPEND DATA TYPES ONTO AN EXISTING CHAR BUFFER
  */
 
 // pretty much same as memcpy but also is aware of current position of buff
@@ -32,6 +34,31 @@ int putChar(unsigned char *buff,
 
 	else
 		ret = 1;
+
+	// increment position index counter
+	*curPos += length;
+
+	return ret;
+}
+
+// buff = buffer containing data to fetch
+// val
+int fetchChar(unsigned char *val,
+				unsigned char *buff,
+					unsigned int *curPos)
+{
+	// store the value specified by val into the buffer
+	// specified by buff starting at the position
+	// specified by pos
+	unsigned int ret = 0;
+	unsigned int length = sizeof(unsigned char);
+
+	unsigned char *blah = memcpy(val, &buff[*curPos], length);
+
+	//printf("@[putChar] -- about to return char: %c \n", fetchedChar);
+
+	// get return value
+
 
 	// increment position index counter
 	*curPos += length;
@@ -67,8 +94,50 @@ int putShort(unsigned char *buff,
 	return ret;
 }
 
+int fetchShort(unsigned short *val,
+					unsigned char *buff,
+						unsigned int *curPos)
+{
+	// store the value specified by val into the buffer
+	// specified by buff starting at the position
+	// specified by pos
+	unsigned int ret = 0;
+	unsigned int length = sizeof(unsigned short);
+
+	unsigned char *blah = memcpy(val, &buff[*curPos], length);
+
+	//printf("@[putChar] -- about to return char: %c \n", fetchedChar);
+
+	// get return value
+
+
+	// increment position index counter
+	*curPos += length;
+
+	return ret;
+}
+
+int fetchInt(unsigned int *val,
+				unsigned char *buff,
+					unsigned int *curPos)
+{
+	// store the value specified by val into the buffer
+	// specified by buff starting at the position
+	// specified by pos
+	unsigned int ret = 0;
+	unsigned int length = sizeof(unsigned int);
+	unsigned char *blah = memcpy(val, &buff[*curPos], length);
+
+	// get return value
+
+	// increment position index counter
+	*curPos += length;
+
+	return ret;
+}
 
 // pretty much same as memcpy but also is aware of current position of buff
+// used for parsing and appending onto things
 int putString(unsigned char *destBuff,
 					unsigned char *srcBuff,
 							unsigned int count,
@@ -92,6 +161,8 @@ int putString(unsigned char *destBuff,
 	return ret;
 }
 
+// should be copy bytes because sometimes we are copying non-string values
+// where strcpy would fail
 int copyString(unsigned char *destBuff,
 					unsigned char *srcBuff,
 						unsigned int count)
@@ -113,7 +184,7 @@ int copyString(unsigned char *destBuff,
 }
 
 int seekToChar(unsigned char *qNameArg,
-							unsigned char seekValueArg)
+					unsigned char seekValueArg)
 {
 	printf("==============DEBUG=============== \n");
 	printf("function name - seekToChar    	   \n");
@@ -125,6 +196,8 @@ int seekToChar(unsigned char *qNameArg,
 	// until we reach the seekValueArg
 	unsigned int seekBytes = 0;
 	unsigned int c;
+
+
 
 	return seekBytes;
 }

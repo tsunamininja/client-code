@@ -19,9 +19,20 @@ int putChar(unsigned char* buff,
 				unsigned char *val,
 					unsigned int *curPos);
 
+int fetchChar(unsigned char *val,
+					unsigned char *buff,
+						unsigned int *curPos);
 
 int putShort(unsigned char* buff,
 				unsigned short *val,
+					unsigned int *curPos);
+
+int fetchShort(unsigned short *val,
+					unsigned char *buff,
+						unsigned int *curPos);
+
+int fetchInt(unsigned int *val,
+				unsigned char *buff,
 					unsigned int *curPos);
 
 

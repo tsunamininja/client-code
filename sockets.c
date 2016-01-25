@@ -15,7 +15,7 @@
  * 			   _sendBuffLen => about of bytes to send
  * 			   _recvBuff => pointer to pointer of char* for caller to fetch reply
  *
- * return value - status flag?
+ * return value - returns the amount of bytes received.. if 0 -- cant parse reply..
  *
  * comments - Incase the destination dns server shutsdown, we may receive
  *            a SIGPIPE signal, if we add the flag MSG_NOSIGNAL, perhaps
@@ -35,6 +35,7 @@ int sendQuery(unsigned char *_sendBuff,
 	int s;
 	int flag = 0;
 	int recvBuffSize = RECV_SIZE;
+	int bytesRecv;
 
 	char *dstIp = "127.0.0.1"; // cat resolv.conf or similiar
 	unsigned short dstPort = 53;
@@ -67,25 +68,14 @@ int sendQuery(unsigned char *_sendBuff,
 
 	// send the udp datagram response
 	// MSG_DONTWAIT incase server is down or unavailable.. don't block for ever.
-	//if(recvfrom(s, *_recvBuff, RECV_SIZE, 0, 0, 0) < 0)
-	//{
-	//	perror("recvfrom failed");
-	//	return 0;
-	//}
+	if(recvfrom(s, *_recvBuff, RECV_SIZE, 0, 0, 0) < 0)
+	{
+		perror("recvfrom failed");
+		return 0;
+	}
+
 	// close the socket descriptor
 	close(s);
-
-	// free malloc'd socketBuffer
-	// if we free here, then the other functions which rely on global
-	// buffer can't use it
-	//free(sockBuff);
-	//{
-	//	printf("	 failed for free(sockBuff) \n");
-	//}
-	// close socket to do or not to do ?
-	// when sleep = 0 .. failed to create dgram socket: Too many open files
-	// closing causes a new source port to be generated per request?
-	///close(s); // will close and then once reopened get new src port every tx?
 
 	return flag;
 }

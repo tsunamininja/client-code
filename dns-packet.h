@@ -10,6 +10,8 @@
 
 // define the DNS packet structure
 
+
+
 // define default values for DNS header fields
 
 // set by client and copied in response from server
@@ -138,9 +140,9 @@ struct DNS_HEADER
  */
 struct DNS_QUESTION
 {
-	unsigned char *qname;
-	unsigned short qtype;
-	unsigned short qclass;
+	unsigned char  *qname;
+	unsigned short  qtype;
+	unsigned short  qclass;
 };
 
 /*
@@ -183,6 +185,18 @@ struct DNS_ANSWER
 	unsigned short ttl;
 	unsigned short rdlength;
 	unsigned int   rdata; // assuming a record queries
+};
+
+struct DNS_QUERY_PACKET
+{
+
+};
+
+struct DNS_RESPONSE_PACKET
+{
+	struct DNS_HEADER 	dnsHeader;
+	struct DNS_QUESTION dnsQuestion;
+	struct DNS_ANSWER 	dnsAnswer;
 };
 
 struct FQDN_NODE
