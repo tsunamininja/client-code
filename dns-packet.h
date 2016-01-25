@@ -189,6 +189,7 @@ struct DNS_ANSWER
 struct FQDN_NODE
 {
 	unsigned char *fqdn;
+	unsigned int size;
 	struct FQDN_NODE *next;
 };
 

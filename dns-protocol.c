@@ -16,6 +16,7 @@
 #include "dns-packet.h"   // structure definitions and size calculations
 #include "bufferHelper.h" // for copyString
 
+#include "sockets.h"
 // global variables
 unsigned int debug = 1;
 
@@ -528,6 +529,9 @@ unsigned int getQueryNameLength(unsigned char* qNameArg,
  * 			  chunking then sending right away, to chunking and store, then send
  * 			  when ever you want at what ever pace and order desired !
  *
+ * 			  When appending a std out chunk to domain name, need to add
+ * 			  a period to the end of the stdout buff sdfijsdiofjsdf>.<cnn.com
+ *
  */
 struct FQDN_NODE *buildFqdnList(unsigned char *_stdoutBuffer,
 									unsigned char *_domainName,
@@ -543,8 +547,7 @@ struct FQDN_NODE *buildFqdnList(unsigned char *_stdoutBuffer,
 
 	// each list member structure defined below
 	struct FQDN_NODE *head;
-	//unsigned char *fqdn;
-	int chunkSize = 40;
+	int chunkSize = 30;
 	int domainSize = strlen(_domainName); // error handling.. strlen <= 0
 	int mallocAmt = 0;
 
@@ -553,7 +556,10 @@ struct FQDN_NODE *buildFqdnList(unsigned char *_stdoutBuffer,
 	printf("stdoutSize: %u \n", _stdoutSize);
 
 	/* allocate memory for head node */
-	head = malloc(sizeof(struct FQDN_NODE));
+	head = malloc(sizeof(struct FQDN_NODE)); // make sure to free !
+	head->fqdn = NULL;
+	head->size = NULL;
+	head->next = NULL;
 
 	/* create fqdn from stdoutBuffer chunk and _domain */
 
@@ -564,23 +570,38 @@ struct FQDN_NODE *buildFqdnList(unsigned char *_stdoutBuffer,
 	// while we have not grabbed each byte of stdout
 	while(bytesRemaining > 0)
 	{
+		printf("bytes transmitted: %u \n", bytesTransmitted);
+		printf("bytes remaining: %u \n\n", bytesRemaining);
+
+		// before pushing to FQDN Node, need to create the FQDN by appending.
+		unsigned char fqdn[255];
+
 		if(bytesRemaining <= chunkSize)
 		{
-			// push this fqdn chunk to our linked list
-			push(&head, &(_stdoutBuffer[bytesTransmitted]), bytesRemaining);
+			memcpy(fqdn, &(_stdoutBuffer[bytesTransmitted]), bytesRemaining);
+			memcpy(&(fqdn[bytesRemaining]), _domainName, domainSize);
+			push(head, fqdn, bytesRemaining);
+			bytesTransmitted = bytesRemaining;
+			bytesRemaining = 0;
 		}
 		else // we have at least 1 more than chunkSize bytes left
 		{
-			push(&head, &(_stdoutBuffer[bytesTransmitted]), chunkSize);
-
-			// adjust counters appropriately
+			memcpy(fqdn, &(_stdoutBuffer[bytesTransmitted]), chunkSize);
+			memcpy(&(fqdn[chunkSize]), _domainName, domainSize);
+			push(head, fqdn, chunkSize);
 			bytesTransmitted = (bytesTransmitted + chunkSize);
 			bytesRemaining = (_stdoutSize - bytesTransmitted);
 		}
+
+		// clear fqdn
+		memset(fqdn, '\0', 255);
 	}
 
+	printf("bytes transmitted: %u \n", bytesTransmitted);
+	printf("bytes remaining: %u \n", bytesRemaining);
+
 	if(debug)
-			printf("=====/end buildFqdnList() ===== \n");
+		printf("=====/end buildFqdnList() ===== \n");
 
 	return head;
 }
@@ -589,6 +610,14 @@ struct FQDN_NODE *buildFqdnList(unsigned char *_stdoutBuffer,
 // data field value associated with each node in the list
 void printList(struct FQDN_NODE *head)
 {
+	if(debug)
+	{
+		printf("\n===== printList() ===== \n");
+		//printf("head -> fqdn: %s \n", head->fqdn);
+		//printf("head -> size: %u \n", head->size);
+		//printf("------------------------\n");
+	}
+
 	// create a local pointer to walk the list
 	struct FQDN_NODE *current = head;
 
@@ -596,11 +625,15 @@ void printList(struct FQDN_NODE *head)
 	// they each contain the memory address of the head variable
 
 	// loop through each node in the list and print the value
-	while (current != NULL)
+	while (current->next != NULL)
 	{
 		// print out the first data field in the list
-		// %d for signed integer
-		printf("data: %s \n", current->fqdn);
+
+		// send too
+		//sendQuery(current->fqdn, current->size, NULL);
+		//sleep(3);
+		printf("current ~ fqdn: %s \n", current->fqdn);
+		printf("current ~ size: %u \n\n", current->size);
 
 		// at this point, the current pointer still points at head
 		// we need to modify the value of current, by assigning it
@@ -616,27 +649,59 @@ void printList(struct FQDN_NODE *head)
 		// had been changed to NULL, then we are at the end of the list
 		// ie "node1->next = NULL;"
 	}
+
+	// current->next == NULL here.. end of list but we can still print this node
+	printf("tail node ~ fqdn: %s \n", current->fqdn);
+	printf("tail node ~ size: %u \n", current->size);
+
+	if(debug)
+			printf("=====/end printList() ===== \n");
 }
 
-void push(struct FQDN_NODE** ptr_head, unsigned char *_fqdn, int _dataSize)
+// push() aka insertAtFront()..
+// need to insertAtEnd()
+
+// bugs --- the head node fields are empty? is this a wasted node space?
+void push(struct FQDN_NODE *head,
+				unsigned char *_fqdn,
+					unsigned int _dataSize)
 {
+	if(debug)
+	{
+		printf("===== push() ===== \n");
+		//printf("head->fqdn: %s \n", head->fqdn);
+		//printf("head->size: %u \n", head->size);
+		//printf("head->next: %p \n", head->next);
+		//printf("----------------------------\n");
+	}
+
 	// 0.) allocate memory for new node
 	struct FQDN_NODE *newNode = malloc(sizeof(struct FQDN_NODE));
 
 	// 1.) alloc memory for fqdn string member
 	newNode->fqdn = malloc(_dataSize);
 
-	// 2.) assign values at member
+	// 2.a) assign values at member fqdn
 	memcpy(newNode->fqdn, _fqdn, _dataSize);
 
-	// 3.) set newNode 'next' value to head.. this head will now
-	// becomes the 2nd node in list
-	newNode->next = *ptr_head;
+	// 2.b) assign values at member fqdn
+	newNode->size = _dataSize;
 
-	// 2.) set head to point to newNode... thus making newNode the first node in list
-	*ptr_head = newNode;
+	// 2.c) set newNode->next to NULL
+	newNode->next = NULL;
 
-	// 3.) find the last node
-	// ?
+	// 3.) set head next to point to this new node
+	// we need to make sure we are at the end of the list before we add a new one
+	struct FQDN_NODE *current = head;
 
+	while (current->next != NULL)
+	{
+		printf("inside while ... current->next is not currently null \n");
+		current = current->next;
+	}
+		// at end of list now
+		current->next = newNode;
+
+	if(debug)
+		printf("=====/end push() ===== \n");
 }

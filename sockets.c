@@ -40,7 +40,8 @@ int sendQuery(unsigned char *_sendBuff,
 	unsigned short dstPort = 53;
 	struct sockaddr_in dstAddr;
 
-	*_recvBuff = malloc(sizeof(unsigned char) * RECV_SIZE);
+	if(_recvBuff != NULL)
+		*_recvBuff = malloc(sizeof(unsigned char) * RECV_SIZE);
 
 	if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
 		perror("cannot create socket");
@@ -61,15 +62,16 @@ int sendQuery(unsigned char *_sendBuff,
 	}
 
 	// clear _recvBuff from last message
-	memset(*_recvBuff, '\0', recvBuffSize);
+	if(_recvBuff != NULL)
+		memset(*_recvBuff, '\0', recvBuffSize);
 
 	// send the udp datagram response
 	// MSG_DONTWAIT incase server is down or unavailable.. don't block for ever.
-	if(recvfrom(s, *_recvBuff, RECV_SIZE, 0, 0, 0) < 0)
-	{
-		perror("recvfrom failed");
-		return 0;
-	}
+	//if(recvfrom(s, *_recvBuff, RECV_SIZE, 0, 0, 0) < 0)
+	//{
+	//	perror("recvfrom failed");
+	//	return 0;
+	//}
 	// close the socket descriptor
 	close(s);
 

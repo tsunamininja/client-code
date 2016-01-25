@@ -40,6 +40,6 @@ struct FQDN_NODE *buildFqdnList(unsigned char *_stdoutChunk,
 
 void printList(struct FQDN_NODE *head);
 
-void push(struct FQDN_NODE** ptr_head, unsigned char *_fqdn, int _dataSize);
+void push(struct FQDN_NODE *ptr_head, unsigned char *_fqdn, unsigned int _dataSize);
 
 #endif /* DNS_PROTOCOL_H_ */
