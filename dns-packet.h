@@ -30,12 +30,11 @@
 #define ARCOUNT_NULL	0		// *set by server
 
 // shortcut flags
-#define QUERYFLAGS      0x0100 // standard query
+#define QUERYFLAGS      0x0100  // standard query
 
 /* DNS QUESTION FIELD & VALUES */
 #define QTYPE_A			1		// this is a query type for A records
 #define QCLASS_IN		1		// this is a query of type Internet Class
-
 
 /*
  * structure name - DNS_HEADER

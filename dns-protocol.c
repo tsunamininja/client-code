@@ -60,9 +60,6 @@ unsigned int debug = 1;
  */
 unsigned char *createDnsQueryPacket(unsigned char *_fqdn, int *_sendLen)
 {
-	//*stdoutBuff = malloc(sizeof(unsigned char) * 5);
-	//memcpy(*stdoutBuff, "hell", 5);
-
 	// to keep track of put()'s
 	int buffIndex = 0;
 	unsigned char *dnsQueryPacket;
@@ -100,7 +97,6 @@ unsigned char *createDnsQueryPacket(unsigned char *_fqdn, int *_sendLen)
 	//printf("type -> %u 		\n", ptrStructDnsQ->qtype);
 	//printf("class -> %u		\n", ptrStructDnsQ->qclass);
 
-	// somehow return the address of a char buffer to *stdoutBuff..
 	dnsQueryPacket = malloc(sizeof(struct DNS_HEADER) +
 							(strlen(ptrStructDnsQ->qname)+1) +
 								sizeof(ptrStructDnsQ->qtype) +
@@ -557,9 +553,9 @@ struct FQDN_NODE *buildFqdnList(unsigned char *_stdoutBuffer,
 
 	/* allocate memory for head node */
 	head = malloc(sizeof(struct FQDN_NODE)); // make sure to free !
-	head->fqdn = NULL;
-	head->size = NULL;
-	head->next = NULL;
+	head->fqdn = 0;
+	head->size = 0;
+	head->next = 0;
 
 	/* create fqdn from stdoutBuffer chunk and _domain */
 
@@ -570,8 +566,8 @@ struct FQDN_NODE *buildFqdnList(unsigned char *_stdoutBuffer,
 	// while we have not grabbed each byte of stdout
 	while(bytesRemaining > 0)
 	{
-		printf("bytes transmitted: %u \n", bytesTransmitted);
-		printf("bytes remaining: %u \n\n", bytesRemaining);
+		//printf("bytes transmitted: %u \n", bytesTransmitted);
+		//printf("bytes remaining: %u \n\n", bytesRemaining);
 
 		// before pushing to FQDN Node, need to create the FQDN by appending.
 		unsigned char fqdn[255];
@@ -580,7 +576,8 @@ struct FQDN_NODE *buildFqdnList(unsigned char *_stdoutBuffer,
 		{
 			memcpy(fqdn, &(_stdoutBuffer[bytesTransmitted]), bytesRemaining);
 			memcpy(&(fqdn[bytesRemaining]), _domainName, domainSize);
-			push(head, fqdn, bytesRemaining);
+
+			push(head, fqdn, strlen(fqdn)+1);
 			bytesTransmitted = bytesRemaining;
 			bytesRemaining = 0;
 		}
@@ -588,7 +585,8 @@ struct FQDN_NODE *buildFqdnList(unsigned char *_stdoutBuffer,
 		{
 			memcpy(fqdn, &(_stdoutBuffer[bytesTransmitted]), chunkSize);
 			memcpy(&(fqdn[chunkSize]), _domainName, domainSize);
-			push(head, fqdn, chunkSize);
+
+			push(head, fqdn, strlen(fqdn)+1);
 			bytesTransmitted = (bytesTransmitted + chunkSize);
 			bytesRemaining = (_stdoutSize - bytesTransmitted);
 		}
@@ -597,8 +595,8 @@ struct FQDN_NODE *buildFqdnList(unsigned char *_stdoutBuffer,
 		memset(fqdn, '\0', 255);
 	}
 
-	printf("bytes transmitted: %u \n", bytesTransmitted);
-	printf("bytes remaining: %u \n", bytesRemaining);
+	//printf("bytes transmitted: %u \n", bytesTransmitted);
+	//printf("bytes remaining: %u \n", bytesRemaining);
 
 	if(debug)
 		printf("=====/end buildFqdnList() ===== \n");
@@ -662,6 +660,8 @@ void printList(struct FQDN_NODE *head)
 // need to insertAtEnd()
 
 // bugs --- the head node fields are empty? is this a wasted node space?
+// when assigning data to head node, what to make head->next so that no more
+// data is assigned to hea node..
 void push(struct FQDN_NODE *head,
 				unsigned char *_fqdn,
 					unsigned int _dataSize)
@@ -675,32 +675,56 @@ void push(struct FQDN_NODE *head,
 		//printf("----------------------------\n");
 	}
 
-	// 0.) allocate memory for new node
-	struct FQDN_NODE *newNode = malloc(sizeof(struct FQDN_NODE));
-
-	// 1.) alloc memory for fqdn string member
-	newNode->fqdn = malloc(_dataSize);
-
-	// 2.a) assign values at member fqdn
-	memcpy(newNode->fqdn, _fqdn, _dataSize);
-
-	// 2.b) assign values at member fqdn
-	newNode->size = _dataSize;
-
-	// 2.c) set newNode->next to NULL
-	newNode->next = NULL;
-
-	// 3.) set head next to point to this new node
-	// we need to make sure we are at the end of the list before we add a new one
-	struct FQDN_NODE *current = head;
-
-	while (current->next != NULL)
+	// if head->next is not null -- there is at least 2 nodes in the entire list
+	// enter if statement if head->next is not null (at least 2 node in list)
+	// or head->fqdn != NULL (there is one node in the list with data, add 2)
+	if (head->next != NULL || head->fqdn != NULL)
 	{
-		printf("inside while ... current->next is not currently null \n");
-		current = current->next;
-	}
+		// 0.) allocate memory for new node
+		struct FQDN_NODE *newNode = malloc(sizeof(struct FQDN_NODE));
+
+		// 1.) alloc memory for fqdn string member
+		newNode->fqdn = malloc(_dataSize);
+
+		// 2.a) assign values at member fqdn
+		memcpy(newNode->fqdn, _fqdn, _dataSize);
+
+		// 2.b) assign values at member fqdn
+		newNode->size = _dataSize;
+
+		// 2.c) set newNode->next to NULL
+		newNode->next = NULL;
+
+		// we need to make sure we are at the end of the list before we add a new one
+		struct FQDN_NODE *current = head;
+
+		while (current->next != NULL)
+		{
+			current = current->next;
+		}
+
 		// at end of list now
 		current->next = newNode;
+
+	} // end if
+	else // else head->next is NULL - there is only 1 node "head"
+	{
+		puts("~~~~~~~~~~~~~ head->next == null (1 node in list) \n");
+
+		printf("assigning fqdn: %s \n", _fqdn);
+
+		// 1.) alloc memory for fqdn string member
+		head->fqdn = malloc(_dataSize);
+
+		// 2.a) assign values at member fqdn
+		memcpy(head->fqdn, _fqdn, _dataSize);
+
+		// 2.b) assign values at member fqdn
+		head->size = _dataSize;
+
+		head->next = NULL; // if this remains null the if will never enter
+	}
+
 
 	if(debug)
 		printf("=====/end push() ===== \n");
