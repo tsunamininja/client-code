@@ -126,6 +126,7 @@ int fetchInt(unsigned int *val,
 	// specified by pos
 	unsigned int ret = 0;
 	unsigned int length = sizeof(unsigned int);
+
 	unsigned char *blah = memcpy(val, &buff[*curPos], length);
 
 	// get return value
@@ -160,6 +161,32 @@ int putString(unsigned char *destBuff,
 
 	return ret;
 }
+
+// grab a string from srcBuff -- stores it into DestBuff
+// "getString"
+int fetchString(unsigned char *destBuff,
+					unsigned char *srcBuff,
+							unsigned int count,
+									unsigned int *curPos)
+{
+	// store the source string specified by srcBuff into the destination buffer
+	// specified by destBuff starting at the position specified by pos
+	unsigned char *dummyPtr = memcpy(destBuff, &(srcBuff[*curPos]), count);
+	unsigned int ret = 0;
+
+	// get return value
+	if (dummyPtr == NULL)
+		ret = -1;
+
+	else
+		ret = 0;
+
+	// increment position index counter by how many bytes we "appended"
+	*curPos += count;
+
+	return ret;
+}
+
 
 // should be copy bytes because sometimes we are copying non-string values
 // where strcpy would fail
@@ -219,12 +246,12 @@ int seekToChar(unsigned char *qNameArg,
  */
 void stringPrinter(unsigned char *buff, unsigned int len)
 {
-	printf("[@] stringPrinter \n");
+	//printf("[@] stringPrinter \n");
 	//printf("size of char array: %d bytes \n\n", sizeof(in_string));
 
 	for (int i=0; i<len; i++) // actually prints length
 	{
-	    printf("index> %u char> %c  hex> %x \n", i, buff[i], buff[i]);
-		//printf("%c", buff[i]);
+	    //printf("index> %u char> %c  hex> %x \n", i, buff[i], buff[i]);
+		printf("%x_", buff[i]);
 	}
 }

@@ -647,17 +647,24 @@ struct DNS_RESPONSE_PACKET *parseDnsResponse(unsigned char *_recvBuff,
 	fetchShort(&(response->dnsHeader.nscount), _recvBuff, &buffIndex);
 	fetchShort(&(response->dnsHeader.arcount), _recvBuff, &buffIndex);
 
-	printDnsResponse(response);
-
 	/* fetch dns question section from reply */
 	// allocate memory for qname field
-	//int qNameLen = strlen(&(_recvBuff[buffIndex]) + 1);
+	int qNameLen = strlen(&(_recvBuff[buffIndex])) + 1;
+	response->dnsQuestion.qname = malloc(sizeof(unsigned char)*qNameLen);
+	fetchString(response->dnsQuestion.qname, _recvBuff, qNameLen, &buffIndex);
+	fetchShort(&(response->dnsQuestion.qtype), _recvBuff, &buffIndex);
+	fetchShort(&(response->dnsQuestion.qclass), _recvBuff, &buffIndex);
 
-	//printf("qnameLen: %u \n", qNameLen);
+	/* fetch dns answer section from reply */
+	fetchShort(&(response->dnsAnswer.name),     _recvBuff, &buffIndex);
+	fetchShort(&(response->dnsAnswer.type),     _recvBuff, &buffIndex);
+	fetchShort(&(response->dnsAnswer.class),    _recvBuff, &buffIndex);
+	//stringPrinter(&(_recvBuff[buffIndex]), 4);
+	fetchInt  (&(response->dnsAnswer.ttl),      _recvBuff, &buffIndex);
+	fetchShort(&(response->dnsAnswer.rdlength), _recvBuff, &buffIndex);
+	fetchInt  (&(response->dnsAnswer.rdata),    _recvBuff, &buffIndex);
 
-	//response->dnsQuestion->qname = malloc()
-	//putString()
-
+    printDnsResponse(response);
 
 	// end func
 	if(debug)
@@ -671,30 +678,31 @@ void printDnsResponse(struct DNS_RESPONSE_PACKET *resp)
 	printf("[+] Printing DNS Server Response \n");
 
 	// printing dns header
-	printf("TRANS ID %hx     \n", htons(resp->dnsHeader.id));
-	printf("FLAGS: %hx       \n", htons(resp->dnsHeader.flags));
-	printf("QUEST COUNT: %hx \n", htons(resp->dnsHeader.qdcode));
+	printf("\n== DNS HEADER SECTION == \n");
+	printf("TRANS ID %hx     \n", ntohs(resp->dnsHeader.id));
+
+	printf("FLAGS: %hx       \n", ntohs(resp->dnsHeader.flags));
+	printf("QUEST COUNT: %hx \n", ntohs(resp->dnsHeader.qdcode));
 	printf("ANSW RRs: %hx    \n", htons(resp->dnsHeader.ancount));
 	printf("AUTH RRs: %hx    \n", htons(resp->dnsHeader.nscount));
 	printf("ADDIT RRs: %hx   \n", htons(resp->dnsHeader.arcount));
 
-	/*
+
 
 	// print dns question section
+	printf("\n== DNS QUESTION SECTION == \n");
 	printf("QUESTION NAME: ");
-	stringPrinter(resp->dnsQuestion.qname, strlen(resp->dnsQuestion.qname));
+	stringPrinter(resp->dnsQuestion.qname, strlen(resp->dnsQuestion.qname)+1);
 	printf("\n");
-
-	printf("QUESTION TYPE %x  \n",		   htons(resp->dnsQuestion.qtype));
-	printf("QUESTION CLASS %x \n", 		   htons(resp->dnsQuestion.qclass));
+	printf("QUESTION TYPE %x  \n",		   ntohs(resp->dnsQuestion.qtype));
+	printf("QUESTION CLASS %x \n", 		   ntohs(resp->dnsQuestion.qclass));
 
 	// print answer
-	printf("RESPONSE NAME PTR: %hx    \n", htons(resp->dnsAnswer.name));
-	printf("RESPONSE TYPE: %hx        \n", htons(resp->dnsAnswer.type));
-	printf("RESPONSE QUERY CLASS: %hx \n", htons(resp->dnsAnswer.class));
-	printf("RESPONSE TTL: %u	      \n", htons(resp->dnsAnswer.ttl));
-	printf("RESPONSE DATA LEN>: %hx   \n", htons(resp->dnsAnswer.rdlength));
-	printf("RESPONSE DATA: %x         \n", htons(resp->dnsAnswer.rdata));
-
-	*/
+	printf("\n== DNS ANSWER SECTION == \n");
+	printf("RESPONSE NAME PTR: %hx    \n", ntohs(resp->dnsAnswer.name));
+	printf("RESPONSE TYPE: %hx        \n", ntohs(resp->dnsAnswer.type));
+	printf("RESPONSE QUERY CLASS: %hx \n", ntohs(resp->dnsAnswer.class));
+	printf("RESPONSE TTL -> %x	      \n", ntohl(resp->dnsAnswer.ttl));
+	printf("RESPONSE DATA LEN>: %hx   \n", ntohs(resp->dnsAnswer.rdlength));
+	printf("RESPONSE DATA: %x         \n", ntohl(resp->dnsAnswer.rdata));
 }

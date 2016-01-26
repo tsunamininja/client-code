@@ -41,6 +41,11 @@ int putString(unsigned char *destBuff,
 					unsigned int count,
 						unsigned int *curPos);
 
+int fetchString(unsigned char *destBuff,
+					unsigned char *srcBuff,
+							unsigned int count,
+									unsigned int *curPos);
+
 
 int copyString(unsigned char *destBuff,
 					unsigned char *srcBuff,

@@ -182,7 +182,7 @@ struct DNS_ANSWER
 	unsigned short name;
 	unsigned short type;
 	unsigned short class;
-	unsigned short ttl;
+	unsigned int   ttl;
 	unsigned short rdlength;
 	unsigned int   rdata; // assuming a record queries
 };
