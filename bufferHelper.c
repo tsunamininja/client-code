@@ -21,6 +21,7 @@ int putChar(unsigned char *buff,
 	// store the value specified by val into the buffer
 	// specified by buff starting at the position
 	// specified by pos
+	printf("===== putChar() ==== \n");
 	unsigned int ret = 0;
 	unsigned int length = sizeof(unsigned char);
 
@@ -38,15 +39,18 @@ int putChar(unsigned char *buff,
 	// increment position index counter
 	*curPos += length;
 
+	printf("===== /END putChar() ==== \n");
+
 	return ret;
 }
 
 // buff = buffer containing data to fetch
-// val
+// used for parsing a reply and saving fields to our own data members
 int fetchChar(unsigned char *val,
 				unsigned char *buff,
 					unsigned int *curPos)
 {
+	printf("===== fetchChar() ==== \n");
 	// store the value specified by val into the buffer
 	// specified by buff starting at the position
 	// specified by pos
@@ -62,6 +66,8 @@ int fetchChar(unsigned char *val,
 
 	// increment position index counter
 	*curPos += length;
+
+	printf("===== /END fetchChar() ==== \n");
 
 	return ret;
 }
@@ -163,7 +169,8 @@ int putString(unsigned char *destBuff,
 }
 
 // grab a string from srcBuff -- stores it into DestBuff
-// "getString"
+// "getString" -- used for parsing responses and putting chunks of data
+// from a long "chunk payload" into our local string buffer
 int fetchString(unsigned char *destBuff,
 					unsigned char *srcBuff,
 							unsigned int count,

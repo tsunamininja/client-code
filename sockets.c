@@ -66,6 +66,15 @@ int sendQuery(unsigned char *_sendBuff,
 	if(_recvBuff != NULL)
 		memset(*_recvBuff, '\0', recvBuffSize);
 
+	// contents of _recvBuff is a pointer containing NULL,
+	// _recvBuff = address of stack variable
+	// *_recvBuff = contents of stack variable which is address of main::buffer
+	// with the address of mains buffer variable, we can modify the contents of it
+
+	// if the caller wants a variable modifeid, it needs to pass address of var
+	// if it just passes variable.. the contents of variable "null" are passed
+	// can't change the contents of nothing.
+
 	// send the udp datagram response
 	// MSG_DONTWAIT incase server is down or unavailable.. don't block for ever.
 	if(recvfrom(s, *_recvBuff, RECV_SIZE, 0, 0, 0) < 0)

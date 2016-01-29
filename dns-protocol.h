@@ -8,12 +8,26 @@
 #ifndef DNS_PROTOCOL_H_
 #define DNS_PROTOCOL_H_
 
+// defines
+#define MESSAGE_TYPE_OFFSET 1;
+
 // globals
 extern unsigned char header[];
 extern unsigned char footer[];
 extern unsigned int chunkSize;
 extern unsigned char testPayload[];
 extern unsigned char queryMessage[];
+
+// here is where we model the protocol we are encapsulating inside dns
+
+// used for parsing dns server response
+struct CONTROL
+{
+	unsigned char clientId;
+	unsigned char messageType;
+	unsigned char messsageLength;
+	unsigned char *message;
+};
 
 // create a packet buffer
 // build a struct
@@ -48,9 +62,13 @@ void push(struct FQDN_NODE *ptr_head,
 				unsigned char *_fqdn,
 					unsigned int _dataSize);
 
-struct DNS_RESPONSE_PACKET *parseDnsResponsePacket(unsigned char *_recvBuff,
-														int _recvBuffSize);
+struct DNS_RESPONSE_PACKET *parseDnsResponse(unsigned char *_recvBuff,
+												int _recvBuffSize);
 
 void printDnsResponse(struct DNS_RESPONSE_PACKET *resp);
+
+struct CONTROL *getControl(struct DNS_RESPONSE_PACKET *drp);
+
+void printControlFields(struct CONTROL *c);
 
 #endif /* DNS_PROTOCOL_H_ */

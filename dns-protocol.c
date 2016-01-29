@@ -619,7 +619,9 @@ void push(struct FQDN_NODE *head,
  *
  * return value - ?
  *
- * comments - purpose of function is to prse
+ * comments - purpose of function is to parse a dns response. I guess we could
+ * 			  implement server control creation here, but leave fields alone
+ * 			  incase we need them later?.
  *
  */
 struct DNS_RESPONSE_PACKET *parseDnsResponse(unsigned char *_recvBuff,
@@ -628,7 +630,7 @@ struct DNS_RESPONSE_PACKET *parseDnsResponse(unsigned char *_recvBuff,
 	if(debug)
 	{
 		printf("===== parseDnsResponse() ===== 	\n");
-		printf("_recvBuffer: %s \n", _recvBuff);
+		printf("_recvBuffer: %s \n",   _recvBuff);
 		printf("_recvBuffSize: %u \n", _recvBuffSize);
 		printf("----------------------------	\n");
 	}
@@ -637,29 +639,25 @@ struct DNS_RESPONSE_PACKET *parseDnsResponse(unsigned char *_recvBuff,
 	struct DNS_RESPONSE_PACKET *response;
 	response = malloc(sizeof(struct DNS_RESPONSE_PACKET));
 
-	//printDnsResponse(response);
-
 	/* fetch dns header fields from reply */
-	fetchShort(&(response->dnsHeader.id), 	   _recvBuff, &buffIndex);
-	fetchShort(&(response->dnsHeader.flags),   _recvBuff, &buffIndex);
-	fetchShort(&(response->dnsHeader.qdcode),  _recvBuff, &buffIndex);
-	fetchShort(&(response->dnsHeader.ancount), _recvBuff, &buffIndex);
-	fetchShort(&(response->dnsHeader.nscount), _recvBuff, &buffIndex);
-	fetchShort(&(response->dnsHeader.arcount), _recvBuff, &buffIndex);
+	fetchShort(&(response->dnsHeader.id), 	    _recvBuff, &buffIndex);
+	fetchShort(&(response->dnsHeader.flags),    _recvBuff, &buffIndex);
+	fetchShort(&(response->dnsHeader.qdcode),   _recvBuff, &buffIndex);
+	fetchShort(&(response->dnsHeader.ancount),  _recvBuff, &buffIndex);
+	fetchShort(&(response->dnsHeader.nscount),  _recvBuff, &buffIndex);
+	fetchShort(&(response->dnsHeader.arcount),  _recvBuff, &buffIndex);
 
 	/* fetch dns question section from reply */
-	// allocate memory for qname field
 	int qNameLen = strlen(&(_recvBuff[buffIndex])) + 1;
 	response->dnsQuestion.qname = malloc(sizeof(unsigned char)*qNameLen);
-	fetchString(response->dnsQuestion.qname, _recvBuff, qNameLen, &buffIndex);
-	fetchShort(&(response->dnsQuestion.qtype), _recvBuff, &buffIndex);
+	fetchString(response->dnsQuestion.qname,    _recvBuff, qNameLen, &buffIndex);
+	fetchShort(&(response->dnsQuestion.qtype),  _recvBuff, &buffIndex);
 	fetchShort(&(response->dnsQuestion.qclass), _recvBuff, &buffIndex);
 
 	/* fetch dns answer section from reply */
 	fetchShort(&(response->dnsAnswer.name),     _recvBuff, &buffIndex);
 	fetchShort(&(response->dnsAnswer.type),     _recvBuff, &buffIndex);
 	fetchShort(&(response->dnsAnswer.class),    _recvBuff, &buffIndex);
-	//stringPrinter(&(_recvBuff[buffIndex]), 4);
 	fetchInt  (&(response->dnsAnswer.ttl),      _recvBuff, &buffIndex);
 	fetchShort(&(response->dnsAnswer.rdlength), _recvBuff, &buffIndex);
 	fetchInt  (&(response->dnsAnswer.rdata),    _recvBuff, &buffIndex);
@@ -670,7 +668,8 @@ struct DNS_RESPONSE_PACKET *parseDnsResponse(unsigned char *_recvBuff,
 	if(debug)
 		printf("====/end parseDnsResponse() ==== \n");
 
-	return 0;
+	// LOOOOOOOOOOOOOL was returning a null pointer.. 0
+	return response;
 }
 
 void printDnsResponse(struct DNS_RESPONSE_PACKET *resp)
@@ -705,4 +704,51 @@ void printDnsResponse(struct DNS_RESPONSE_PACKET *resp)
 	printf("RESPONSE TTL -> %x	      \n", ntohl(resp->dnsAnswer.ttl));
 	printf("RESPONSE DATA LEN>: %hx   \n", ntohs(resp->dnsAnswer.rdlength));
 	printf("RESPONSE DATA: %x         \n", ntohl(resp->dnsAnswer.rdata));
+}
+
+void printControlFields(struct CONTROL *c)
+{
+	printf("[+] Printing Control Fields \n");
+
+	// printing dns header
+	printf("Client id: %x \n", 		c->clientId);
+	printf("Message Type: %x \n", 	c->messageType);
+	printf("Message Length: %x \n", c->messsageLength);
+	printf("Message <task>: "); stringPrinter(c->message, 3); printf("\n");
+}
+
+// create control struct that is perhaps protocol agnostic
+// this is used for parsing responses
+// not modifying values of drp, pass by value is ok
+// bugs -- if sizeofMessage - "control bytes (2)" > size of label qname[0]
+struct CONTROL *getControl(struct DNS_RESPONSE_PACKET *drp)
+{
+	if(debug)
+	{
+		printf("===== getControl() ===== 	\n");
+	}
+
+	struct CONTROL *ctrl = malloc(sizeof(struct CONTROL));
+
+	int offset = MESSAGE_TYPE_OFFSET;
+
+	/* get messageType */
+	fetchChar(&(ctrl->messageType), drp->dnsQuestion.qname, &offset);
+
+	/* get messageLength */
+	fetchChar(&(ctrl->messsageLength), drp->dnsQuestion.qname, &offset);
+
+	/* get message itself */
+	// 1.) allocate storage for message
+	//ctrl->message = malloc(sizeof(ctrl->messsageLength) * sizeof(unsigned char));
+	ctrl->message = malloc(3 * sizeof(unsigned char));
+	fetchString(ctrl->message,
+					drp->dnsQuestion.qname,
+						3,
+							&offset);
+
+	if(debug)
+		printf("====/end getControl() ==== \n");
+
+	return ctrl;
 }
