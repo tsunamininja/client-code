@@ -48,6 +48,8 @@ unsigned int debug = 1;
 /*
  * function name - createDnsQueryPacket
  *
+ *
+ *
  * arguments - _fqdn => The fully qual domain name to go inside QNAME field
  * 						The fqdn typically consists of host.SLD.TLD.
  *
@@ -55,14 +57,17 @@ unsigned int debug = 1;
  *
  * return value - char pointer to created dns packet
  *
- * comments - dnsQueryBuffer is the buffer returned that represents a complete
+ * comments - dnsQueryPacket is the buffer returned that represents a complete
  * dns query buffer, "udp payload", which is passed to a socket.
  */
-unsigned char *createDnsQueryPacket(unsigned char *_fqdn, int *_sendLen)
+unsigned char *createDnsQueryPacket(unsigned char *_host,
+										unsigned char *_domain,
+											int *_sendLen)
 {
 	// to keep track of put()'s
 	int buffIndex = 0;
 	unsigned char *dnsQueryPacket;
+	unsigned char *fqdn = appendString(_host, _domain);
 
 	struct DNS_HEADER *ptrStructDnsH;
 	struct DNS_QUESTION *ptrStructDnsQ;
@@ -78,7 +83,7 @@ unsigned char *createDnsQueryPacket(unsigned char *_fqdn, int *_sendLen)
 						);
 
 	/* create and fill in a DNS_QUESTION struct */
-	ptrStructDnsQ = buildDnsQuestion(_fqdn, QTYPE_A, QCLASS_IN);
+	ptrStructDnsQ = buildDnsQuestion(fqdn, QTYPE_A, QCLASS_IN);
 
 	//printf("[-] Printing DNS Query Message Packet \n");
 	//printf("DNS Header Section \n");
@@ -234,7 +239,7 @@ unsigned char *createDnsRfcQueryString(unsigned char *qNameArg,
 		}
 	} // done while
 
-	// assign 0 to value at rfc query name index
+	// assign 0 to value at rfc query name index (MAKE SURE string is long enuf
 	rfcQName[rfcQNameIndex] = 0;
 
 	// dereference integer pointer, store the value of rfcQNameLength
@@ -685,8 +690,6 @@ void printDnsResponse(struct DNS_RESPONSE_PACKET *resp)
 	printf("ANSW RRs: %hx    \n", htons(resp->dnsHeader.ancount));
 	printf("AUTH RRs: %hx    \n", htons(resp->dnsHeader.nscount));
 	printf("ADDIT RRs: %hx   \n", htons(resp->dnsHeader.arcount));
-
-
 
 	// print dns question section
 	printf("\n== DNS QUESTION SECTION == \n");

@@ -217,6 +217,40 @@ int copyString(unsigned char *destBuff,
 	return ret;
 }
 
+// returns a new string in the form: str1+str2
+// can't use str c lib functions because null terminate at 0
+unsigned char *appendString(unsigned char *_str1,
+								unsigned char *_str2)
+{
+	// store the source string specified by srcBuff into the destination buffer
+	// specified by destBuff starting at the position specified by pos
+	// **BUG ** if count > deskBuff.capacity
+	//unsigned char *dummyPtr = memcpy(destBuff, srcBuff, count);
+	unsigned int pos = 0;
+	unsigned char z = 'x';
+
+	int len_str1 = strlen(_str1); // host portion
+	int len_str2 = strlen(_str2); // domain
+
+	// we will need to create a string the size of both arrays
+	int newStringSize = len_str1 + len_str2 + 1;
+
+	printf("newStringSize: %u \n", newStringSize);
+
+	unsigned char *newString = malloc(sizeof(unsigned char)*newStringSize);
+
+	// copy _str1 to newString
+	putString(newString, _str1, len_str1, &pos);
+
+	// copy "append" str2 to str1
+	putString(newString, _str2, len_str2, &pos);
+
+	// null terminate string
+	//putChar(newString, &z, &pos);
+
+	return newString;
+}
+
 int seekToChar(unsigned char *qNameArg,
 					unsigned char seekValueArg)
 {
@@ -258,7 +292,8 @@ void stringPrinter(unsigned char *buff, unsigned int len)
 
 	for (int i=0; i<len; i++) // actually prints length
 	{
-	    //printf("index> %u char> %c  hex> %x \n", i, buff[i], buff[i]);
-		printf("%x_", buff[i]);
+	    printf("index> %u char> %c  hex> %x \n", i, buff[i], buff[i]);
+		//printf("%x_", buff[i]);
 	}
+	printf("\n");
 }

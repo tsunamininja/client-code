@@ -35,7 +35,9 @@ struct CONTROL
 
 // function definitions
 
-unsigned char *createDnsQueryPacket(unsigned char *_fqdn, int *sendLen);
+unsigned char *createDnsQueryPacket(unsigned char *host,
+										unsigned char *_domain,
+											int *_sendLen);
 
 struct DNS_HEADER *buildDnsHeader (
 						unsigned short id,

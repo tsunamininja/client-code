@@ -41,6 +41,9 @@ int putString(unsigned char *destBuff,
 					unsigned int count,
 						unsigned int *curPos);
 
+unsigned char *appendString(unsigned char *_str1,
+								unsigned char *_str2);
+
 int fetchString(unsigned char *destBuff,
 					unsigned char *srcBuff,
 							unsigned int count,
