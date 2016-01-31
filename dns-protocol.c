@@ -165,7 +165,6 @@ unsigned char *createDnsRfcQueryString(unsigned char *qNameArg,
 		printf("===== createDnsRfcQueryString() =====	\n");
 		printf("qNameArg -> %s 		 	 \n", qNameArg);
 		printf("rfcQNameArg -> %u 		 \n", *rfcQNameLengthArg);
-		printf("--------------------------------- 	    \n");
 	}
 
 	unsigned int retFlag = 0; // no errors
@@ -278,7 +277,6 @@ struct DNS_HEADER *buildDnsHeader (
 		printf("ancount -> %u   \n", ancount);
 		printf("nscount -> %u   \n", nscount);
 		printf("arcount -> %u   \n", arcount);
-		printf("---------------------------------- \n");
 	}
 
 	// allocate memory for the DNS_HEADER structure, this should only be done
@@ -337,7 +335,6 @@ struct DNS_QUESTION *buildDnsQuestion(unsigned char *qNameArg,
 		printf("qNameArg -> %s 			\n", qNameArg);
 		printf("qtype -> %u 			\n", qtypeArg);
 		printf("qclass -> %u			\n", qclassArg);
-		printf("----------------------------------\n");
 	}
 
 	unsigned int rfcQNameLength = 0;
@@ -433,7 +430,6 @@ struct NODE *constructStdoutList(unsigned char *_stdoutBuffer,
 		printf("===== constructStdoutList() ===== \n");
 		printf("stdoutBuffer> %s \n", _stdoutBuffer);
 		printf("stdoutBuffer Size-> %u 	 \n", _stdoutSize);
-		printf("----------------------------\n");
 	}
 
 	// each list member structure defined below

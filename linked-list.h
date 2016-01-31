@@ -22,10 +22,13 @@ struct NODE {
 
 // function definitions (API)
 ///struct NODE *createList();
+int isListEmpty(struct NODE *head);
 
 void enqueue(struct NODE **_head,
 				unsigned char *_data,
 					unsigned int _dataLength);
+
+struct NODE *dequeue(struct NODE **_head);
 
 void printList(struct NODE *head);
 

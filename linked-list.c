@@ -70,6 +70,26 @@ void printList(struct NODE *head)
 	printf("=====/end printList() ===== \n");
 }
 
+
+int isListEmpty(struct NODE *_head)
+{
+	int flag = 0; // = 0 not empty
+
+	if (_head == NULL)
+	{
+		// list is empty
+		flag = 1;
+		printf("\n[!] list is currently empty \n");
+	}
+	else
+	{
+		flag = 0;
+	}
+
+	return flag;
+}
+
+
 /*
  * push is more of a stack operation, LIFO
  *
@@ -85,10 +105,9 @@ void enqueue(struct NODE **_head,
 				unsigned char *_data,
 					unsigned int _dataLength)
 {
-	printf("===== push() ===== \n");
+	printf("\n===== enqueue() ===== \n");
 	printf("_data> %s \n", _data);
 	printf("_dataLength -> %u \n", _dataLength);
-	printf("----------------------------\n");
 
 	// create a node to represent new guy
 	struct NODE *newest = malloc(sizeof(struct NODE));
@@ -103,8 +122,8 @@ void enqueue(struct NODE **_head,
 	newest->dataLength = _dataLength;
 	newest->next = NULL;
 
-	// check to see if there is 0 heads in list, aka *_head is NULL.. not connct
-	if (*_head == NULL)
+	// check to see if list is empty
+	if (isListEmpty(*_head)) // is empty - return 1 == if = true
 	{
 		printf("*_head is null, linking to create 1 node \n");
 		*_head = newest; // link ! -- now 1 node in list
@@ -124,8 +143,21 @@ void enqueue(struct NODE **_head,
 		//current->
 		current->next = newest;
 	}
-	//current = newest;
 
+	printf("=====/end enqueue() ===== \n\n");
+}
 
-	printf("=====/end push() ===== \n");
+struct NODE *dequeue(struct NODE **_head)
+{
+	printf("\n===== dequeue() ===== \n");
+
+	// create a local pointer to walk the list
+	struct NODE *current = *_head;
+
+	// fetch node and move head pointer to next node
+	*_head = current->next;
+
+	printf("=====/end dequeue() ===== \n\n");
+
+	return current;
 }

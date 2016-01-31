@@ -33,7 +33,6 @@ int shellCommand(unsigned char *_command, unsigned char **_stdoutBuffer)
 		printf("===== shellCommand() ===== \n");
 		printf("command -> %s 			\n", _command);
 		printf("stdoutBuffer (not printing) \n" );
-		printf("----------------------------------\n");
 	}
 
 	/* pipe -> fork -> exec */
