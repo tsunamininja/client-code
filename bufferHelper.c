@@ -290,10 +290,15 @@ void stringPrinter(unsigned char *buff, unsigned int len)
 	//printf("[@] stringPrinter \n");
 	//printf("size of char array: %d bytes \n\n", sizeof(in_string));
 
+	printf("\n");
+
 	for (int i=0; i<len; i++) // actually prints length
 	{
+		printf("-------------------------- \n");
 	    printf("index> %u char> %c  hex> %x \n", i, buff[i], buff[i]);
-		//printf("%x_", buff[i]);
+	 	    //printf("%x_", buff[i]);
 	}
+
+	printf("-------------------------- ");
 	printf("\n");
 }

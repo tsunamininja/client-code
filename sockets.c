@@ -28,21 +28,21 @@
  * bugs - Do not use a macro expansion for a number when arg is expect size_t
  * !BUG - if peer server is down, set a timeout before not blocking??
  */
-int sendQuery(unsigned char *_sendBuff,
-				int _sendBuffLen,
-					unsigned char **_recvBuff)
+unsigned char *sendQuery(unsigned char *_sendBuff,
+							int _sendBuffLen,
+								int *bytesRecv)
 {
-	int s;
+	int s = 0;
 	int flag = 0;
 	int recvBuffSize = RECV_SIZE;
-	int bytesRecv;
+	unsigned char *recvBuff = NULL;
 
 	char *dstIp = "127.0.0.1"; // cat resolv.conf or similiar
 	unsigned short dstPort = 53;
 	struct sockaddr_in dstAddr;
 
-	if(_recvBuff != NULL)
-		*_recvBuff = malloc(sizeof(unsigned char) * RECV_SIZE);
+	// allocate buffer for receiving.. free in caller !
+	recvBuff = malloc(sizeof(unsigned char) * RECV_SIZE);
 
 	if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
 		perror("cannot create socket");
@@ -63,8 +63,8 @@ int sendQuery(unsigned char *_sendBuff,
 	}
 
 	// clear _recvBuff from last message
-	if(_recvBuff != NULL)
-		memset(*_recvBuff, '\0', recvBuffSize);
+	if(recvBuff != NULL)
+		memset(recvBuff, '\0', recvBuffSize);
 
 	// contents of _recvBuff is a pointer containing NULL,
 	// _recvBuff = address of stack variable
@@ -77,7 +77,7 @@ int sendQuery(unsigned char *_sendBuff,
 
 	// send the udp datagram response
 	// MSG_DONTWAIT incase server is down or unavailable.. don't block for ever.
-	if(recvfrom(s, *_recvBuff, RECV_SIZE, 0, 0, 0) < 0)
+	if( (*bytesRecv = recvfrom(s, recvBuff, RECV_SIZE, 0, 0, 0)) < 0)
 	{
 		perror("recvfrom failed");
 		return 0;
@@ -86,5 +86,5 @@ int sendQuery(unsigned char *_sendBuff,
 	// close the socket descriptor
 	close(s);
 
-	return flag;
+	return recvBuff;
 }

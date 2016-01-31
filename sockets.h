@@ -20,7 +20,9 @@
 // defines
 #define RECV_SIZE 512
 
-int sendQuery(unsigned char *sendBuff, int len, unsigned char **recvBuff);
+unsigned char *sendQuery(unsigned char *sendBuff,
+							int sendBuffSize,
+								int *recvBuffSize);
 
 
 

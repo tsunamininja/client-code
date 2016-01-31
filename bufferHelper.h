@@ -63,17 +63,11 @@ void stringPrinter(unsigned char *buff, unsigned int len);
 
 /* byte buffer related operations */
 
+
 unsigned int getPosition();
 
+
 void resetPosition();
-
-
-
-
-
-
-
-
 
 
 #endif /* BUFFERHELPER_H_ */

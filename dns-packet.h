@@ -199,11 +199,4 @@ struct DNS_RESPONSE_PACKET
 	struct DNS_ANSWER 	dnsAnswer;
 };
 
-struct FQDN_NODE
-{
-	unsigned char *fqdn;
-	unsigned int size;
-	struct FQDN_NODE *next;
-};
-
 #endif /* DNS_PACKET_H_ */

