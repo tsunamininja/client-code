@@ -32,16 +32,6 @@ struct NODE *dequeue(struct NODE **_head);
 
 void printList(struct NODE *head);
 
-// createList
-
-// push
-
-// print
-
-
-
-
-
-
+int getListSize(struct NODE *head);
 
 #endif /* LINKED_LIST_H_ */
