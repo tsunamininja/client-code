@@ -2,8 +2,7 @@
 .project
 Debug
 main
-main.c
 *.o
 myprog
 a.out
-
+.gitignore
