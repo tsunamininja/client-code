@@ -63,19 +63,26 @@ void printList(struct NODE *head)
 
 int isListEmpty(struct NODE *_head)
 {
+	printf("\n===== isListEmpty() ===== \n");
+
+	printf("_head: %p \n", _head);
+
 	int flag = 0; // = 0 not empty
 
 	if (_head == NULL)
 	{
 		// list is empty
+		puts("_head == null ");
 		flag = 1;
 		printf(">>> list is currently empty \n");
 	}
 	else
 	{
+		puts("_head != null ");
 		flag = 0;
 	}
 
+	printf("=====/end isListEmpty() ===== \n");
 	return flag;
 }
 
@@ -140,10 +147,12 @@ void enqueue(struct NODE **_head,
 struct NODE *dequeue(struct NODE **_head)
 {
 	printf("\n===== dequeue() ===== \n");
+	printf("_head: %p \n", _head);
+	printf("*_head: %p \n", *_head);
 
 	if(isListEmpty(*_head))
 	{
-		return 0;
+		return NULL;
 	}
 	else
 	{

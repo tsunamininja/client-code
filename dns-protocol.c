@@ -109,14 +109,14 @@ unsigned char *createDnsQueryPacket(unsigned char *_host,
 									sizeof(ptrStructDnsQ->qclass));
 
 	if(dnsQueryPacket == NULL)
-		{
-			printf(">>> "
-				"*dnsQueryPacket = malloc(sizeof(struct DNS_HEADER) + "
-				"<<< \n"
-				"malloc returned NULL aka failed... exiting \n");
-			//retFlag = 1;
-			exit(1);
-		}
+	{
+		printf(">>> "
+			"*dnsQueryPacket = malloc(sizeof(struct DNS_HEADER) + "
+			"<<< \n"
+			"malloc returned NULL aka failed... exiting \n");
+		//retFlag = 1;
+		exit(1);
+	}
 
 	// copy each value into *stdoutBuffArg array elements
 
@@ -136,6 +136,13 @@ unsigned char *createDnsQueryPacket(unsigned char *_host,
 
 	putShort(dnsQueryPacket, &(ptrStructDnsQ->qtype),  &buffIndex);
 	putShort(dnsQueryPacket, &(ptrStructDnsQ->qclass), &buffIndex);
+
+	// free here?
+	////if (ptrStructDnsH != NULL)
+	///	free(ptrStructDnsH);
+
+	///if (ptrStructDnsQ != NULL)
+	//	free(ptrStructDnsQ);
 
 	// buffIndex is the length of our udp datagram aka dns packet
 	*_sendLen = buffIndex;
@@ -331,7 +338,7 @@ struct DNS_QUESTION *buildDnsQuestion(unsigned char *qNameArg,
 {
 	if(debug)
 	{
-		printf("===== createDnsQuestion() ===== \n");
+		printf("===== buildDnsQuestion() ===== \n");
 		printf("qNameArg -> %s 			\n", qNameArg);
 		printf("qtype -> %u 			\n", qtypeArg);
 		printf("qclass -> %u			\n", qclassArg);
@@ -357,7 +364,7 @@ struct DNS_QUESTION *buildDnsQuestion(unsigned char *qNameArg,
 	rfcQName = createDnsRfcQueryString(qNameArg, &rfcQNameLength);
 
 	printf("[-] just built the rfc string \n");
-	stringPrinter(rfcQName, rfcQNameLength); printf("\n");
+	//stringPrinter(rfcQName, rfcQNameLength); printf("\n");
 
 	if(rfcQName == NULL)
 	{
@@ -390,7 +397,7 @@ struct DNS_QUESTION *buildDnsQuestion(unsigned char *qNameArg,
 	//*qNameLengthArg = rfcQNameLength;
 
 	if(debug)
-		printf("=====/end createDnsQuestion() ===== \n");
+		printf("=====/end buildDnsQuestion() ===== \n");
 
 	return ptrStructDnsQ;
 }
