@@ -521,11 +521,15 @@ struct DNS_RESPONSE_PACKET *parseDnsResponse(unsigned char *_recvBuff,
 	}
 
 	int buffIndex = 0;
-	struct DNS_RESPONSE_PACKET *response;
+	struct DNS_RESPONSE_PACKET *response = NULL;
+	puts("525");
 	response = malloc(sizeof(struct DNS_RESPONSE_PACKET));
+	puts("257");
 
 	/* fetch dns header fields from reply */
 	fetchShort(&(response->dnsHeader.id), 	    _recvBuff, &buffIndex);
+
+	puts("finished first fetch \n");
 	fetchShort(&(response->dnsHeader.flags),    _recvBuff, &buffIndex);
 	fetchShort(&(response->dnsHeader.qdcode),   _recvBuff, &buffIndex);
 	fetchShort(&(response->dnsHeader.ancount),  _recvBuff, &buffIndex);
@@ -534,7 +538,9 @@ struct DNS_RESPONSE_PACKET *parseDnsResponse(unsigned char *_recvBuff,
 
 	/* fetch dns question section from reply */
 	int qNameLen = strlen(&(_recvBuff[buffIndex])) + 1;
+	printf("qNameLen: %u \n", qNameLen);
 	response->dnsQuestion.qname = malloc(sizeof(unsigned char)*qNameLen);
+	puts("finished dnsq.Name malloc \n");
 	fetchString(response->dnsQuestion.qname,    _recvBuff, qNameLen, &buffIndex);
 	fetchShort(&(response->dnsQuestion.qtype),  _recvBuff, &buffIndex);
 	fetchShort(&(response->dnsQuestion.qclass), _recvBuff, &buffIndex);
@@ -547,7 +553,7 @@ struct DNS_RESPONSE_PACKET *parseDnsResponse(unsigned char *_recvBuff,
 	fetchShort(&(response->dnsAnswer.rdlength), _recvBuff, &buffIndex);
 	fetchInt  (&(response->dnsAnswer.rdata),    _recvBuff, &buffIndex);
 
-    printDnsResponse(response);
+    //printDnsResponse(response);
 
 	// end func
 	if(debug)
@@ -604,6 +610,8 @@ void printControlFields(struct CONTROL *c)
 // this is used for parsing responses
 // not modifying values of drp, pass by value is ok
 // bugs -- if sizeofMessage - "control bytes (2)" > size of label qname[0]
+// another BUG -- the message should not be longer than qname itself...
+
 struct CONTROL *getControl(struct DNS_RESPONSE_PACKET *drp)
 {
 	if(debug)
@@ -613,6 +621,11 @@ struct CONTROL *getControl(struct DNS_RESPONSE_PACKET *drp)
 
 	struct CONTROL *ctrl = malloc(sizeof(struct CONTROL));
 
+	int z = 0;
+	unsigned char labelLength;
+	fetchChar(&labelLength, drp->dnsQuestion.qname, &z);
+	printf("label length: %u \n", labelLength);
+
 	int offset = MESSAGE_TYPE_PARSE_OFFSET;
 
 	/* get messageType */
@@ -621,6 +634,12 @@ struct CONTROL *getControl(struct DNS_RESPONSE_PACKET *drp)
 	/* get messageLength */
 	fetchChar(&(ctrl->messsageLength), drp->dnsQuestion.qname, &offset);
 
+	if(ctrl->messsageLength > labelLength)
+	{
+		puts("messageLength is way too longer! ");
+		ctrl->messsageLength = labelLength;
+	}
+
 	/* get message itself */
 	// 1.) allocate storage for message
 	ctrl->message = malloc(sizeof(ctrl->messsageLength)*sizeof(unsigned char));
@@ -628,6 +647,9 @@ struct CONTROL *getControl(struct DNS_RESPONSE_PACKET *drp)
 					drp->dnsQuestion.qname,
 						ctrl->messsageLength,
 							&offset);
+
+	// BUG here -- copying bytes way past dnsquestion qname +++++ and into
+	// safe ctrl-> message block... but I think
 
 	if(debug)
 		printf("====/end getControl() ==== \n");
