@@ -7,6 +7,8 @@
 #include <stdlib.h>			// exit
 #include "bufferHelper.h"
 
+int debug2 = 0;
+
 /*
  * put<DataType> .. more like append<DataType>
  *
@@ -21,7 +23,9 @@ int putChar(unsigned char *buff,
 	// store the value specified by val into the buffer
 	// specified by buff starting at the position
 	// specified by pos
-	printf("===== putChar() ==== \n");
+	if(debug2)
+		printf("===== putChar() ==== \n");
+
 	unsigned int ret = 0;
 	unsigned int length = sizeof(unsigned char);
 
@@ -39,7 +43,8 @@ int putChar(unsigned char *buff,
 	// increment position index counter
 	*curPos += length;
 
-	printf("===== /END putChar() ==== \n");
+	if(debug2)
+		printf("===== /END putChar() ==== \n");
 
 	return ret;
 }
@@ -50,7 +55,9 @@ int fetchChar(unsigned char *val,
 				unsigned char *buff,
 					unsigned int *curPos)
 {
-	printf("===== fetchChar() ==== \n");
+	if(debug2)
+		printf("===== fetchChar() ==== \n");
+
 	// store the value specified by val into the buffer
 	// specified by buff starting at the position
 	// specified by pos
@@ -67,7 +74,8 @@ int fetchChar(unsigned char *val,
 	// increment position index counter
 	*curPos += length;
 
-	printf("===== /END fetchChar() ==== \n");
+	if(debug2)
+		printf("===== /END fetchChar() ==== \n");
 
 	return ret;
 }
@@ -235,7 +243,7 @@ unsigned char *appendString(unsigned char *_str1,
 	// we will need to create a string the size of both arrays
 	int newStringSize = len_str1 + len_str2 + 1;
 
-	printf("newStringSize: %u \n", newStringSize);
+	//printf("newStringSize: %u \n", newStringSize);
 
 	unsigned char *newString = malloc(sizeof(unsigned char)*newStringSize);
 
@@ -254,18 +262,18 @@ unsigned char *appendString(unsigned char *_str1,
 int seekToChar(unsigned char *qNameArg,
 					unsigned char seekValueArg)
 {
-	printf("==============DEBUG=============== \n");
-	printf("function name - seekToChar    	   \n");
-	printf("qNameArg -> %s		\n", qNameArg);
-	printf("seekValueArg -> %c 	\n", seekValueArg);
-	printf("================================== \n");
-
+	if(debug2)
+	{
+		printf("==============debug2=============== \n");
+		printf("function name - seekToChar    	   \n");
+		printf("qNameArg -> %s		\n", qNameArg);
+		printf("seekValueArg -> %c 	\n", seekValueArg);
+		printf("================================== \n");
+	}
 	// from qNameArg start.. how many bytes does it take
 	// until we reach the seekValueArg
 	unsigned int seekBytes = 0;
 	unsigned int c;
-
-
 
 	return seekBytes;
 }

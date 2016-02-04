@@ -19,44 +19,42 @@ void printList(struct NODE *head)
 	// create a local pointer to walk the list
 	struct NODE *current = head;
 
-	if(isListEmpty(head))
+	if(isListEmpty(head)) // if true -- list is empty... print it
 	{
 		printf("=====/end printList() ===== \n");
-		exit(1);
 	}
-
-
-	// now the value of current = = the value of head
-	// they each contain the memory address of the head variable
-
-	// loop through each node in the list and print the value
-	while (current->next != NULL)
+	else
 	{
-		// print out the first data field in the list
+		// now the value of current = = the value of head
+		// they each contain the memory address of the head variable
 
-		// send too
-		//sendQuery(current->hostName, current->size, NULL);
-		//sleep(3);
-		printf("current ~ hostName: %s \n", current->data);
+		// loop through each node in the list and print the value
+		while (current->next != NULL)
+		{
+			// print out the first data field in the list
 
-		// at this point, the current pointer still points at head
-		// we need to modify the value of current, by assigning it
-		// the value associated with its 'next' member
-		current = current->next;
+			// send too
+			//sendQuery(current->hostName, current->size, NULL);
+			//sleep(3);
+			printf("current ~ hostName: %s \n", current->data);
 
-		// now the current variable value has been modified and now
-		// contains a new memory address corresponding to the next
-		// node that had been linked in previously
+			// at this point, the current pointer still points at head
+			// we need to modify the value of current, by assigning it
+			// the value associated with its 'next' member
+			current = current->next;
 
-		// if the value of current = NULL, as would be the case
-		// when the end of the list was reached and the next data member
-		// had been changed to NULL, then we are at the end of the list
-		// ie "node1->next = NULL;"
+			// now the current variable value has been modified and now
+			// contains a new memory address corresponding to the next
+			// node that had been linked in previously
+
+			// if the value of current = NULL, as would be the case
+			// when the end of the list was reached and the next data member
+			// had been changed to NULL, then we are at the end of the list
+			// ie "node1->next = NULL;"
+		}
+		// current->next == NULL here.. end of list but we can still print this node
+		printf("tail node ~ hostName: %s \n", current->data);
 	}
-
-	// current->next == NULL here.. end of list but we can still print this node
-	printf("tail node ~ hostName: %s \n", current->data);
-	//printf("tail node ~ size: %u \n", current->size);
 
 	printf("=====/end printList() ===== \n");
 }
@@ -103,7 +101,6 @@ void enqueue(struct NODE **_head,
 {
 	printf("\n===== enqueue() ===== \n");
 	printf("_data> %s \n", _data);
-	printf("_dataLength -> %u \n", _dataLength);
 
 	// create a node to represent new guy
 	struct NODE *newest = malloc(sizeof(struct NODE));
@@ -147,7 +144,6 @@ void enqueue(struct NODE **_head,
 struct NODE *dequeue(struct NODE **_head)
 {
 	printf("\n===== dequeue() ===== \n");
-	printf("_head: %p \n", _head);
 	printf("*_head: %p \n", *_head);
 
 	if(isListEmpty(*_head))
@@ -160,6 +156,7 @@ struct NODE *dequeue(struct NODE **_head)
 		(*_head) = (*_head)->next;
 	}
 
+	printf("returning this node ~> %s \n", (*_head)->data);
 	return *_head;
 }
 

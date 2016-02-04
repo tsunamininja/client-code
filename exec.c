@@ -13,7 +13,7 @@
 #include "exec.h"
 #include "bufferHelper.h"
 
-int debug1 = 1;
+int debug1 = 0;
 
 /*
  * function name - shellCommand

