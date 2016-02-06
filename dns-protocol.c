@@ -450,7 +450,7 @@ struct NODE *constructStdoutList(unsigned char *_stdoutBuffer,
 
 	// each list member structure defined below
 	///struct STDOUT_CHUNK_NODE *head;
-	int chunkSize = 30;
+	int chunkSize = 40; //global variable to modify?
 	int mallocAmt = 0;
 
 	printf("chunkSize: %u \n", chunkSize);

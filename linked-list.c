@@ -61,26 +61,26 @@ void printList(struct NODE *head)
 
 int isListEmpty(struct NODE *_head)
 {
-	printf("\n===== isListEmpty() ===== \n");
+	///printf("\n===== isListEmpty() ===== \n");
 
-	printf("_head: %p \n", _head);
+	///printf("_head: %p \n", _head);
 
 	int flag = 0; // = 0 not empty
 
 	if (_head == NULL)
 	{
 		// list is empty
-		puts("_head == null ");
+		///puts("_head == null ");
 		flag = 1;
 		printf(">>> list is currently empty \n");
 	}
 	else
 	{
-		puts("_head != null ");
+		///puts("_head != null ");
 		flag = 0;
 	}
 
-	printf("=====/end isListEmpty() ===== \n");
+	///printf("=====/end isListEmpty() ===== \n");
 	return flag;
 }
 
@@ -141,23 +141,39 @@ void enqueue(struct NODE **_head,
 // if using dequeue in a while loop, make sure while loop is controlled by
 // is ListEmpty -- else if only calling dequeue once, need to watch for
 // case where list is empty
+// else -- when list is NOT empty but head->next = NULL -- we can't return
+// that new node because when head-> next is NULL -- 1 node "head" in list..
+// we are the tail
 struct NODE *dequeue(struct NODE **_head)
 {
 	printf("\n===== dequeue() ===== \n");
 	printf("*_head: %p \n", *_head);
 
-	if(isListEmpty(*_head))
+	struct NODE *returningNode = NULL;
+
+	if(isListEmpty(*_head)) // no nodes in list
 	{
-		return NULL;
+		puts("$ IF $ ");
+		returningNode = NULL;
 	}
-	else
+	else if ((*_head)->next != NULL) // at least 2 nodes in list
 	{
+		puts("$ ELSE IF $ ");
 		// fetch node and move head pointer to next node -- "dequeue"
-		(*_head) = (*_head)->next;
+		returningNode = (*_head);
+		(*_head) = (*_head)->next;   // necessary for final dequeue
+	}
+	else // 1 node in list
+	{
+		puts("$ ELSE $ ");
+		returningNode = (*_head);
+		(*_head) = (*_head)->next; // now list will be empty
 	}
 
-	printf("returning this node ~> %s \n", (*_head)->data);
-	return *_head;
+	//printf("returning this node ~> %s \n", returningNode->data);
+	//printf("returning this node ~> %p \n", returningNode->next);
+
+	return returningNode;
 }
 
 int getListSize(struct NODE *head)
