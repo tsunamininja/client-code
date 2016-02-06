@@ -64,7 +64,7 @@ int isListEmpty(struct NODE *_head)
 		// list is empty
 		///puts("_head == null ");
 		flag = 1;
-		printf(">>> list is currently empty \n");
+		//printf(">>> list is currently empty \n");
 	}
 	else
 	{
@@ -91,8 +91,8 @@ void enqueue(struct NODE **_head,
 				unsigned char *_data,
 					unsigned int _dataLength)
 {
-	printf("\n===== enqueue() ===== \n");
-	printf("_data> %s \n", _data);
+	//printf("\n===== enqueue() ===== \n");
+	//printf("_data> %s \n", _data);
 
 	// create a node to represent new guy
 	struct NODE *newest = malloc(sizeof(struct NODE));
@@ -127,7 +127,7 @@ void enqueue(struct NODE **_head,
 		current->next = newest;
 	}
 
-	printf("=====/end enqueue() ===== \n\n");
+	//printf("=====/end enqueue() ===== \n\n");
 }
 
 // if using dequeue in a while loop, make sure while loop is controlled by
@@ -138,26 +138,26 @@ void enqueue(struct NODE **_head,
 // we are the tail
 struct NODE *dequeue(struct NODE **_head)
 {
-	printf("\n===== dequeue() ===== \n");
-	printf("*_head: %p \n", *_head);
+	//printf("\n===== dequeue() ===== \n");
+	//printf("*_head: %p \n", *_head);
 
 	struct NODE *returningNode = NULL;
 
 	if(isListEmpty(*_head)) // no nodes in list
 	{
-		puts("$ IF $ ");
+		//puts("$ IF $ ");
 		returningNode = NULL;
 	}
 	else if ((*_head)->next != NULL) // at least 2 nodes in list
 	{
-		puts("$ ELSE IF $ ");
+		//puts("$ ELSE IF $ ");
 		// fetch node and move head pointer to next node -- "dequeue"
 		returningNode = (*_head);
 		(*_head) = (*_head)->next;   // necessary for final dequeue
 	}
 	else // 1 node in list
 	{
-		puts("$ ELSE $ ");
+		//puts("$ ELSE $ ");
 		returningNode = (*_head);
 		(*_head) = (*_head)->next; // now list will be empty
 	}
@@ -168,7 +168,7 @@ struct NODE *dequeue(struct NODE **_head)
 
 int getListSize(struct NODE *head)
 {
-	printf("\n===== getListSize() ===== \n");
+	//printf("\n===== getListSize() ===== \n");
 	int nodeCount = 0;
 
 	// create a local pointer to walk the list

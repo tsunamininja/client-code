@@ -31,7 +31,7 @@ extern unsigned char queryMessage[];
 // used for parsing dns server response
 struct CONTROL
 {
-	unsigned char clientId;
+	//unsigned char clientId;
 	unsigned char messageType;
 	unsigned char messsageLength;
 	unsigned char *message;

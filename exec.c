@@ -24,7 +24,7 @@ int shellCommand(unsigned char *_command, unsigned char **_stdoutBuffer)
 	if(debug1)
 	{
 		printf("===== shellCommand() ===== \n");
-		printf("command -> %s \n", _command);
+		printf("command -> \n"); stringPrinter(_command, strlen(_command)+1);
 		printf("stdoutBuffer (not printing) \n" );
 	}
 
