@@ -1,10 +1,3 @@
-/*
- * exec.c
- *
- *  Created on: Jan 23, 2016
- *      Author: joe
- */
-
 // this module is responsible for implementing shell like functionality
 // while allowing the buffering of stdout/stderror streams to enable
 // custom multiplexing like capabilities over protocols of choice.
@@ -31,18 +24,16 @@ int shellCommand(unsigned char *_command, unsigned char **_stdoutBuffer)
 	if(debug1)
 	{
 		printf("===== shellCommand() ===== \n");
-		printf("command -> %s 			\n", _command);
+		printf("command -> %s \n", _command);
 		printf("stdoutBuffer (not printing) \n" );
 	}
 
 	/* pipe -> fork -> exec */
-
 	int flag = 0;
 	*_stdoutBuffer = malloc(sizeof(unsigned char) * STDOUT_BUFFER_SIZE);
 	unsigned int readCount = STDOUT_BUFFER_SIZE;
 
 	// malloc return value;
-
 	int filedes[2];
 
 	if (pipe(filedes) == -1)
@@ -78,8 +69,6 @@ int shellCommand(unsigned char *_command, unsigned char **_stdoutBuffer)
 
 	// back in parent.. let's read from the "read end" filedes[0] of the pipe
 	ssize_t count = read(filedes[0], *_stdoutBuffer, readCount);
-
-	printf("count -> %u \n", count);
 
 	if (count == -1)
 	{

@@ -12,6 +12,10 @@
 // include statements
 #include <string.h> // memcpy
 
+// defines
+#define USE_LOOKUPTABLE_YES 97
+#define USE_LOOKUPTABLE_NO  98
+
 // global variables
 
 // function definitions
@@ -60,6 +64,9 @@ int seekToChar(unsigned char *qNameArg,
 
 
 void stringPrinter(unsigned char *buff, unsigned int len);
+
+unsigned char *encode(unsigned char *_orig);
+unsigned char isValidChar(unsigned char c);
 
 /* byte buffer related operations */
 

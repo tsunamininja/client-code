@@ -1,11 +1,3 @@
-/*
- * sockets.c
- *
- *  Created on: Jan 23, 2016
- *      Author: joe
- */
-
-
 #include "sockets.h"
 
 /*
@@ -44,7 +36,8 @@ unsigned char *sendQuery(unsigned char *_sendBuff,
 	// allocate buffer for receiving.. free in caller !
 	recvBuff = malloc(sizeof(unsigned char) * RECV_SIZE);
 
-	if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+	if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+	{
 		perror("cannot create socket");
 		return 0;
 	}
@@ -71,7 +64,7 @@ unsigned char *sendQuery(unsigned char *_sendBuff,
 	// *_recvBuff = contents of stack variable which is address of main::buffer
 	// with the address of mains buffer variable, we can modify the contents of it
 
-	// if the caller wants a variable modifeid, it needs to pass address of var
+	// if the caller wants a variable modified, it needs to pass address of var
 	// if it just passes variable.. the contents of variable "null" are passed
 	// can't change the contents of nothing.
 

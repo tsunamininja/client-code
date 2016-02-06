@@ -117,13 +117,7 @@ int fetchShort(unsigned short *val,
 	// specified by pos
 	unsigned int ret = 0;
 	unsigned int length = sizeof(unsigned short);
-
 	unsigned char *blah = memcpy(val, &buff[*curPos], length);
-
-	//printf("@[putChar] -- about to return char: %c \n", fetchedChar);
-
-	// get return value
-
 
 	// increment position index counter
 	*curPos += length;
@@ -253,9 +247,6 @@ unsigned char *appendString(unsigned char *_str1,
 	// copy "append" str2 to str1
 	putString(newString, _str2, len_str2, &pos);
 
-	// null terminate string
-	//putChar(newString, &z, &pos);
-
 	return newString;
 }
 
@@ -309,4 +300,109 @@ void stringPrinter(unsigned char *buff, unsigned int len)
 
 	printf("-------------------------- ");
 	printf("\n");
+}
+
+/*
+ *  DATA TRANSFORMATION SECTION
+ */
+
+// bugs may have wrong size of encodedStr
+unsigned char *encode(unsigned char *_orig)
+{
+	int orgStrLen = strlen(_orig);
+	int encodedStrLen = orgStrLen * 2;
+	unsigned char *encodedStr = malloc(sizeof(unsigned char) * encodedStrLen);
+	char c;
+	char tmpC;
+	char USE_LOOKUP_YES = 97;
+	char USE_LOOKUP_NO = 98;
+
+	// indexes
+	int encodedStrIndex = 0;
+	int encodedCharFlagIndex = 0;
+
+	// 1.) loop through each char in _orig
+	for (int i=0; i<orgStrLen; i++)
+	{
+		//printf("index ~> %u \n", i);
+		// retrieve char at index i
+		c = _orig[i];
+		tmpC = isValidChar(c);
+		encodedCharFlagIndex = encodedStrIndex+1;
+
+		if(tmpC != c) // we were given a mapped char
+		{
+			memcpy(&(encodedStr[encodedStrIndex]),
+						&tmpC,
+							sizeof(unsigned char));
+
+			memcpy(&(encodedStr[encodedCharFlagIndex]),
+						&USE_LOOKUP_YES,
+							sizeof(unsigned char));
+		}
+		else //we were served the same char, must be valid
+		{
+			memcpy(&(encodedStr[encodedStrIndex]),
+						&tmpC,
+							sizeof(unsigned char));
+
+			memcpy(&(encodedStr[encodedCharFlagIndex]),
+						&USE_LOOKUP_NO,
+							sizeof(unsigned char));
+		}
+
+		// adjust indexes approp
+		encodedStrIndex += 2;
+	}
+
+	return encodedStr;
+}
+
+
+unsigned char isValidChar(unsigned char c)
+{
+	// is buffer in valid range?
+	// first if statment --- all ranges for valid qname characters
+	char returnedChar;
+
+	if( ((c >= 48) && (c <= 57)) || ((c >= 65) && (c <= 90)) || ((c >= 97) && (c <= 122)))
+	{
+		returnedChar = c;
+    }
+	else
+	{
+		// look char up for mapping -- this is the table here
+		switch (c)
+		{
+			case 58: // ':'
+				returnedChar = 97;
+				break;
+
+			case 32: // ' '    space
+				returnedChar = 98;
+				break;
+
+			case 10: // '\n'
+				returnedChar = 99;
+				break;
+
+			case 46: // '.'
+				returnedChar = 100;
+				break;
+
+			case 47: // '/'
+				returnedChar = 101;
+				break;
+
+			case 45: // '-'
+				returnedChar = 102;
+				break;
+
+			default:
+				returnedChar = 49; // '1'
+				break;
+		}
+	}
+
+	return returnedChar;
 }

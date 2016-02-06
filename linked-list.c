@@ -1,14 +1,9 @@
-
 // includes
 #include <stddef.h>	        // NULL == /0
 #include <stdio.h>			// printf
 #include <stdlib.h>		  	// exit, malloc
 #include "linked-list.h"
 #include "bufferHelper.h"
-
-// global variables
-//struct NODE *head;
-
 
 // this method will be responsible for printing out the
 // data field value associated with each node in the list
@@ -59,12 +54,9 @@ void printList(struct NODE *head)
 	printf("=====/end printList() ===== \n");
 }
 
+
 int isListEmpty(struct NODE *_head)
 {
-	///printf("\n===== isListEmpty() ===== \n");
-
-	///printf("_head: %p \n", _head);
-
 	int flag = 0; // = 0 not empty
 
 	if (_head == NULL)
@@ -80,9 +72,9 @@ int isListEmpty(struct NODE *_head)
 		flag = 0;
 	}
 
-	///printf("=====/end isListEmpty() ===== \n");
 	return flag;
 }
+
 
 /*
  * push is more of a stack operation, LIFO
@@ -170,11 +162,9 @@ struct NODE *dequeue(struct NODE **_head)
 		(*_head) = (*_head)->next; // now list will be empty
 	}
 
-	//printf("returning this node ~> %s \n", returningNode->data);
-	//printf("returning this node ~> %p \n", returningNode->next);
-
 	return returningNode;
 }
+
 
 int getListSize(struct NODE *head)
 {

