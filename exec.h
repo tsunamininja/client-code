@@ -1,10 +1,3 @@
-/*
- * exec.h
- *
- *  Created on: Jan 23, 2016
- *      Author: joe
- */
-
 #ifndef EXEC_H_
 #define EXEC_H_
 
@@ -21,7 +14,5 @@
 
 // function prototypes for linker resolution
 int shellCommand(unsigned char *cmd, unsigned char **stdoutBuffer);
-
-
 
 #endif /* EXEC_H_ */

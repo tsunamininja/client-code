@@ -57,10 +57,11 @@ unsigned char *createDnsQueryPacket(unsigned char _msgType,
 	// to keep track of put()'s
 	int buffIndex = 0;
 	unsigned char *dnsQueryPacket;
-	unsigned char *hostName = appendString(_host, _domain);
 	unsigned char msgType = _msgType;
-
+	unsigned char clientID = 0x64;
+	unsigned char *hostName = appendString(_host, _domain);
 	unsigned char *hostNameControl = appendString(&msgType, hostName);
+	unsigned char *qName = appendString(&clientID, hostNameControl);
 
 	struct DNS_HEADER *ptrStructDnsH;
 	struct DNS_QUESTION *ptrStructDnsQ;
@@ -76,7 +77,7 @@ unsigned char *createDnsQueryPacket(unsigned char _msgType,
 						);
 
 	/* create and fill in a DNS_QUESTION struct */
-	ptrStructDnsQ = buildDnsQuestion(hostNameControl, QTYPE_A, QCLASS_IN);
+	ptrStructDnsQ = buildDnsQuestion(qName, QTYPE_A, QCLASS_IN);
 
 	// free HostName here after using it?
 	if(hostName != NULL)

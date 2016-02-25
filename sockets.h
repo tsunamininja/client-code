@@ -1,10 +1,3 @@
-/*
- * sockets.h
- *
- *  Created on: Jan 23, 2016
- *      Author: joe
- */
-
 #ifndef SOCKETS_H_
 #define SOCKETS_H_
 
@@ -24,8 +17,4 @@ unsigned char *sendQuery(unsigned char *sendBuff,
 							int sendBuffSize,
 								int *recvBuffSize);
 
-
-
 #endif /* SOCKETS_H_ */
-
-

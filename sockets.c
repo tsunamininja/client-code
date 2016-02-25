@@ -29,7 +29,8 @@ unsigned char *sendQuery(unsigned char *_sendBuff,
 	int recvBuffSize = RECV_SIZE;
 	unsigned char *recvBuff = NULL;
 
-	char *dstIp = "127.0.0.1"; // cat resolv.conf or similiar
+	//char *dstIp = "52.90.106.57"; // cat resolv.conf or 8.8.8.8
+	char *dstIp = "127.0.0.1";
 	unsigned short dstPort = 53;
 	struct sockaddr_in dstAddr;
 

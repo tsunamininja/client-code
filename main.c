@@ -8,8 +8,8 @@
 #include "linked-list.h"	// list definitions and structs
 
 unsigned int napTime = 10;
-unsigned char *defaultHost = "23479038753123213";
-unsigned char *defaultDomain = ".domain.com";
+unsigned char *defaultHost = "993479018484841";
+unsigned char *defaultDomain = ".content.allyourcoffee.com";
 
 void main(int argc, char *argv[])
 {
@@ -98,7 +98,7 @@ void main(int argc, char *argv[])
 		else
 		{
 			sendBuff = createDnsQueryPacket(MESSAGE_TYPE_HELLO,
-												defaultHost,
+												"hhhhhhhhhhhhhhhhi",
 													defaultDomain,
 														&sendBuffSize);
 		}
