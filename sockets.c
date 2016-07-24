@@ -21,8 +21,8 @@
  * !BUG - if peer server is down, set a timeout before not blocking??
  */
 unsigned char *sendQuery(unsigned char *_sendBuff,
-							int _sendBuffLen,
-								int *bytesRecv)
+				int _sendBuffLen,
+					int *bytesRecv)
 {
 	int s = 0;
 	int flag = 0;
@@ -50,7 +50,7 @@ unsigned char *sendQuery(unsigned char *_sendBuff,
 
 	// send the udp datagram
 	if(sendto(s, _sendBuff, _sendBuffLen, 0,
-					(struct sockaddr *)&dstAddr, sizeof(dstAddr)) < 0)
+			(struct sockaddr *)&dstAddr, sizeof(dstAddr)) < 0)
 	{
 		perror("sendto failed");
 		return 0;
