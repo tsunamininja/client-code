@@ -1,7 +1,7 @@
 // includes
 #include <stddef.h>	        // NULL == /0
-#include <stdio.h>			// printf
-#include <stdlib.h>		  	// exit, malloc
+#include <stdio.h>		// printf
+#include <stdlib.h>		// exit, malloc
 #include "linked-list.h"
 #include "bufferHelper.h"
 
@@ -88,8 +88,8 @@ int isListEmpty(struct NODE *_head)
  * to the list
  */
 void enqueue(struct NODE **_head,
-				unsigned char *_data,
-					unsigned int _dataLength)
+		unsigned char *_data,
+			unsigned int _dataLength)
 {
 	//printf("\n===== enqueue() ===== \n");
 	//printf("_data> %s \n", _data);
